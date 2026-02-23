@@ -124,9 +124,40 @@ namespace superClipboard
                 KeyboardHookManager.keybd_event(VK_DELETE, 0x45, KEYEVENTF_EXTENDEDKEY | 0, 0); // 按下Delete键
                 Thread.Sleep(200);
                 KeyboardHookManager.keybd_event(VK_DELETE, 0x45, KEYEVENTF_KEYUP | 0, 0);
+                SendKeys.SendWait("{DELETE}");
                 Thread.Sleep(200); // 等待窗口切换
-                SendKeys.SendWait(text);
+                string escapedText = EscapeSendKeysString(text);
+                SendKeys.SendWait(escapedText);
             });
+        }
+
+        private static string EscapeSendKeysString(string text)
+        {
+            // SendKeys 特殊字符: + ^ % ~ ( ) [ ] { }
+            // 需要将每个特殊字符用花括号包围，例如 '(' 变为 "{(}"
+            var aa = new System.Text.StringBuilder();
+            foreach (char c in text)
+            {
+                switch (c)
+                {
+                    case '+':
+                    case '^':
+                    case '%':
+                    case '~':
+                    case '(':
+                    case ')':
+                    case '[':
+                    case ']':
+                    case '{':
+                    case '}':
+                        aa.Append('{').Append(c).Append('}');
+                        break;
+                    default:
+                        aa.Append(c);
+                        break;
+                }
+            }
+            return aa.ToString();
         }
 
         public void StartMonitoring()
