@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -13,7 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Linq;
-using System.Runtime.InteropServices;
+
 
 
 namespace superClipboard
@@ -31,21 +32,30 @@ namespace superClipboard
         private Thread _monitorThread;
         private ClipboardData? _currentData;
         private readonly KeyboardHookManager _keyboardHook;
+        private readonly KeyboardHookManager _hookManager;
+        private readonly SettingsManager _settings;
+        private readonly HashSet<Key> _pressedKeys = new();
+        private bool _pendingKeystrokesPaste = false;
         private bool _ctrlPressed = false;
-        private bool _vPressed = false;
+        private bool _altPressed = false;
+        private bool _shiftPressed = false;
+        private bool _winPressed = false;
+
+
         private const uint KEYEVENTF_EXTENDEDKEY = 0x0001; // 键盘按下事件
         private const uint KEYEVENTF_KEYUP = 0x0002; // 键盘释放事件
         private const int VK_DELETE = 0x2E; // Delete键的虚拟键码
-        private bool _altPressed = false;
 
         public event Action<ClipboardData>? ClipboardChanged;
 
-        public ClipboardCore()
+        public ClipboardCore(SettingsManager settings)
         {
+            _settings = settings;
             _keyboardHook = new KeyboardHookManager();
             SetupKeyboardHooks();
-            StartMonitoring();
+            StartMonitoring(); // 假设此方法启动剪贴板监控
         }
+
 
         private void SetupKeyboardHooks()
         {
@@ -55,37 +65,31 @@ namespace superClipboard
 
         private void OnKeyDown(Key key)
         {
-            Console.WriteLine("ok");
+            // 更新修饰键状态
             if (key == Key.LeftCtrl || key == Key.RightCtrl)
                 _ctrlPressed = true;
             if (key == Key.LeftAlt || key == Key.RightAlt)
                 _altPressed = true;
-            if (key == Key.V)
-            {
-                _vPressed = true;
-            }   
+            if (key == Key.LeftShift || key == Key.RightShift)
+                _shiftPressed = true;
+            if (key == Key.LWin || key == Key.RWin)
+                _winPressed = true;
 
+            ModifierKeys currentModifiers = ModifierKeys.None;
+            if (_ctrlPressed) currentModifiers |= ModifierKeys.Control;
+            if (_altPressed) currentModifiers |= ModifierKeys.Alt;
+            if (_shiftPressed) currentModifiers |= ModifierKeys.Shift;
+            if (_winPressed) currentModifiers |= ModifierKeys.Windows;
 
-            if (_ctrlPressed && key == Key.V)
+            // 检查是否匹配普通粘贴快捷键
+            if (currentModifiers == _settings.NormalPasteHotkey.Modifiers && key == _settings.NormalPasteHotkey.Key)
             {
-                if (_altPressed)
-                {
-                    // Ctrl+Alt+V - 模拟键盘输入模式
-                    while(true)
-                    {
-                        // 等待1秒钟，确保剪贴板内容已准备好
-                        Task.Delay(200);  
-                        if(_altPressed == false && _ctrlPressed == false && _vPressed == false) break;
-                    }
-                    ProcessPaste(PasteMode.Keystrokes);
-                    Console.WriteLine(key + " pressed - Paste as Keystrokes");
-                }
-                else
-                {
-                    // Ctrl+V - 普通粘贴模式
-                    ProcessPaste(PasteMode.Normal);
-                    Console.WriteLine(key + " pressed - Paste as Normal");
-                }
+                ProcessPaste(PasteMode.Normal);
+            }
+            // 检查是否匹配模拟按键粘贴快捷键
+            else if (currentModifiers == _settings.KeystrokesPasteHotkey.Modifiers && key == _settings.KeystrokesPasteHotkey.Key)
+            {
+                ProcessPaste(PasteMode.Keystrokes);
             }
         }
 
@@ -95,10 +99,10 @@ namespace superClipboard
                 _ctrlPressed = false;
             if (key == Key.LeftAlt || key == Key.RightAlt)
                 _altPressed = false;
-            if (key == Key.V)
-            {
-                _vPressed = false;
-            }
+            if (key == Key.LeftShift || key == Key.RightShift)
+                _shiftPressed = false;
+            if (key == Key.LWin || key == Key.RWin)
+                _winPressed = false;
         }
 
         private void ProcessPaste(PasteMode mode)
@@ -118,20 +122,33 @@ namespace superClipboard
 
         private void PasteAsKeystrokes(string text)
         {
-        Task.Run(() =>
+            Task.Run(async () =>
             {
-                Thread.Sleep(1000);
-                KeyboardHookManager.keybd_event(VK_DELETE, 0x45, KEYEVENTF_EXTENDEDKEY | 0, 0); // 按下Delete键
-                Thread.Sleep(200);
-                KeyboardHookManager.keybd_event(VK_DELETE, 0x45, KEYEVENTF_KEYUP | 0, 0);
-                SendKeys.SendWait("{DELETE}");
-                Thread.Sleep(200); // 等待窗口切换
-                string escapedText = EscapeSendKeysString(text);
-                SendKeys.SendWait(escapedText);
+                // 等待所有修饰键释放（避免干扰）
+                while (_ctrlPressed || _altPressed || _shiftPressed || _winPressed)
+                {
+                    await Task.Delay(50);
+                }
+
+                // 可选延迟，确保目标窗口准备就绪
+                await Task.Delay(1000);
+
+                // 模拟按下 Delete 键（清空可能预选的内容）
+                KeyboardHookManager.keybd_event(VK_DELETE, 0x45, KEYEVENTF_EXTENDEDKEY, 0);
+                await Task.Delay(50);
+                KeyboardHookManager.keybd_event(VK_DELETE, 0x45, KEYEVENTF_KEYUP, 0);
+                await Task.Delay(100);
+                // 转义特殊字符并发送文本
+                string[] escapedText = EscapeSendKeysString(text);
+                for (long i = 0; i < escapedText.Length; i++)
+                {
+                    SendKeys.SendWait(escapedText[i].ToString());
+                    Thread.Sleep(50);
+                }
             });
         }
 
-        private static string EscapeSendKeysString(string text)
+        private static string[] EscapeSendKeysString(string text)
         {
             // SendKeys 特殊字符: + ^ % ~ ( ) [ ] { }
             // 需要将每个特殊字符用花括号包围，例如 '(' 变为 "{(}"
@@ -157,7 +174,29 @@ namespace superClipboard
                         break;
                 }
             }
-            return aa.ToString();
+            string textWithEscapes = aa.ToString();
+            string[] split = SplitStringByLength(textWithEscapes, 100); // 100字符串切割以实现动态监控
+            return split;
+        }
+
+        public static string[] SplitStringByLength(string input, int chunkSize)
+        {
+            if (string.IsNullOrEmpty(input) || chunkSize <= 0)
+                return new string[] { input }; // 如果输入为空，返回仅包含原字符串的数组；也可根据需求改为返回空数组
+
+            int length = input.Length;
+            int numChunks = (int)Math.Ceiling((double)length / chunkSize);
+            string[] chunks = new string[numChunks];
+
+            for (int i = 0; i < numChunks; i++)
+            {
+                int start = i * chunkSize;
+                int remaining = length - start;
+                int currentChunkSize = Math.Min(chunkSize, remaining);
+                chunks[i] = input.Substring(start, currentChunkSize);
+            }
+
+            return chunks;
         }
 
         public void StartMonitoring()

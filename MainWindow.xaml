@@ -7,7 +7,6 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
         ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
         Height="800" Width="630" MinHeight="500" MinWidth="300" WindowStyle="None" WindowStartupLocation="CenterScreen"
         mc:Ignorable="d" SnapsToDevicePixels="True"
         >
@@ -34,6 +33,7 @@
                           Margin="0,0,0,6" 
                           Grid.Row="1"
                           MenuItemsSource="{Binding CurrentPage}"
+                           Background="{DynamicResource ApplicationBackgroundBrush}"
                            >
         </ui:NavigationView>
         

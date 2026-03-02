@@ -11,6 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="typingTransfer\**" />
+    <EmbeddedResource Remove="typingTransfer\**" />
+    <None Remove="typingTransfer\**" />
+    <Page Remove="typingTransfer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resources\favicon.ico" />
     <None Remove="Resources\icon.png" />
   </ItemGroup>

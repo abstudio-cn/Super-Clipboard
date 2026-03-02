@@ -4,6 +4,9 @@
     <_LastSelectedProfileId>C:\Users\abstudio\source\repos\superClipboard\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Update="NotificationCenter\NoticeWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="pages\ClipHistory.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

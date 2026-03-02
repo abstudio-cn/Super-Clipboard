@@ -9,9 +9,9 @@
              d:DesignHeight="377" d:DesignWidth="651">
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <ui:SymbolIcon Symbol="Home24" FontSize="48" Margin="0,0,0,20" Foreground="White"/>
-            <TextBlock Text="剪贴板" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Foreground="White"/>
-            <TextBlock Text="欢迎使用超级剪贴板应用" FontSize="16" Margin="0,10,0,0" HorizontalAlignment="Center" Foreground="White"/>
+            <ui:SymbolIcon Symbol="Home24" FontSize="48" Margin="0,0,0,20" Foreground="{DynamicResource TextFillColorPrimaryBrush}" OpacityMask="Black"/>
+            <ui:TextBlock Text="剪贴板" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <ui:TextBlock Text="欢迎使用超级剪贴板应用" FontSize="16" Margin="0,10,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
         </StackPanel>
     </Grid>
 </UserControl>

@@ -21,6 +21,7 @@ using System.Xml.Linq;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
+using Wpf.Ui.Markup;
 
 namespace superClipboard
 {
@@ -36,24 +37,21 @@ namespace superClipboard
             InitializePages();
             GenerateMenuItems();
             SetIconFromEmbeddedResource();
-            ApplicationThemeManager.Apply( ApplicationTheme.Dark, WindowBackdropType.Mica);
         }
 
         private void SetIconFromEmbeddedResource()
         {
             var assembly = Assembly.GetExecutingAssembly();
             string resourceName = "superClipboard.Resources.favicon.ico";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            Stream stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream != null)
             {
-                if (stream != null)
-                {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = stream;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-                    this.Icon = bitmap;
-                }
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.StreamSource = stream;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                this.Icon = bitmap;
             }
         }
         private void InitializePages()

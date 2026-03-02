@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Security.Principal;
 using System.Windows;
+using Wpf.Ui.Controls;
 
 public static class UacHelper
 {
@@ -17,7 +18,7 @@ public static class UacHelper
     }
 
     // 获取正确的可执行文件路径（用于以管理员权限重启）
-    private static string GetExecutablePath()
+    public static string GetExecutablePath()
     {
         // 获取入口程序集的位置（可能是 .dll 或 .exe）
         string location = Assembly.GetEntryAssembly().Location;
@@ -72,7 +73,7 @@ public static class UacHelper
     }
 
     // 以管理员身份重新启动应用程序
-    public static void RestartAsAdmin()
+    public static async Task RestartAsAdminAsync()
     {
         string executablePath = GetExecutablePath();
         string entryDll = Assembly.GetEntryAssembly().Location; // 原始的 DLL 路径
@@ -98,28 +99,42 @@ public static class UacHelper
         try
         {
             Process.Start(startInfo);
-            Application.Current.Shutdown();
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"无法以管理员权限重启: {ex.Message}\n路径: {startInfo.FileName} {startInfo.Arguments}");
+            System.Windows.MessageBox.Show(ex.Message);
         }
     }
 
     // 在程序启动时调用此方法，如果需要管理员权限则自动重启
-    public static void RequireAdminOnStart()
+    public static async Task RequireAdminOnStartAsync()
     {
         if (!IsRunAsAdmin())
         {
-            var result = MessageBox.Show(
-                "本程序需要管理员权限才能正常运行。\n是否立即以管理员身份重新启动？",
-                "需要管理员权限",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
+            var messageBox = new Wpf.Ui.Controls.MessageBox
             {
-                RestartAsAdmin();
+                Title = "需要管理员权限",                  // 窗口标题（继承自 Window）
+                Content = "本程序需要管理员权限才能正常运行。\n是否立即以管理员身份重新启动？",        // 消息内容（可放置任何 UI 元素）
+
+                // 主按钮（通常是确认/是）
+                PrimaryButtonText = "是",
+                PrimaryButtonIcon = new SymbolIcon(SymbolRegular.Checkmark24),
+                PrimaryButtonAppearance = ControlAppearance.Primary,
+                IsPrimaryButtonEnabled = true,
+
+                CloseButtonAppearance = ControlAppearance.Secondary,
+                CloseButtonIcon = new SymbolIcon(SymbolRegular.Dismiss24),
+                CloseButtonText = "否",
+
+
+                // 是否在标题栏显示标题
+                ShowTitle = true
+            };
+            Wpf.Ui.Controls.MessageBoxResult result = await messageBox.ShowDialogAsync(showAsDialog: true);
+
+            if (result == Wpf.Ui.Controls.MessageBoxResult.Primary)
+            {
+                RestartAsAdminAsync();
             }
             else
             {

@@ -5,13 +5,15 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 
 namespace superClipboard
 {
     public static class GlobalData
     {
-        public static readonly ClipboardCore _clipboardCore = new();
+        public static readonly SettingsManager key_settings = new();
+        public static readonly ClipboardCore _clipboardCore = new(key_settings);
         public static bool _isMonitoring = false;
         public static ClipboardHistoryManager HistoryManager { get; } = new ClipboardHistoryManager();
     }
