@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,13 +16,23 @@ using System.Windows.Shapes;
 namespace superClipboard
 {
     /// <summary>
-    /// UserControl1.xaml 的交互逻辑
+    /// HomePage - 首页
     /// </summary>
     public partial class HomePage : UserControl
     {
+        private readonly LocalizationService _loc;
+
         public HomePage()
         {
             InitializeComponent();
+            _loc = LocalizationService.Instance;
+            ApplyLocalization();
+        }
+
+        private void ApplyLocalization()
+        {
+            HomeTitle.Text = _loc["app.title"];
+            HomeSubtitle.Text = _loc["home.welcome"];
         }
     }
 }

@@ -16,9 +16,24 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- 背景图片层 -->
+        <Image x:Name="BackgroundImage" 
+               Grid.Row="0" Grid.RowSpan="2"
+               Stretch="UniformToFill"
+               Opacity="0.3"
+               Visibility="Collapsed"
+               IsHitTestVisible="False" />
+
+        <!-- 夜间模式亮度减半遮罩 -->
+        <Rectangle x:Name="NightOverlay" 
+                   Grid.Row="0" Grid.RowSpan="2"
+                   Fill="Black"
+                   Opacity="0.5"
+                   Visibility="Collapsed"
+                   IsHitTestVisible="False" />
+
         <!-- 标题栏 -->
         <ui:TitleBar x:Name="TitleBar" 
-                     Title="超级剪贴板" 
                      CloseWindowByDoubleClickOnIcon="True"
                      Grid.Row="0">
             <ui:TitleBar.Icon>
@@ -32,9 +47,12 @@
                           PaneDisplayMode="LeftFluent" 
                           Margin="0,0,0,6" 
                           Grid.Row="1"
-                          MenuItemsSource="{Binding CurrentPage}"
                            Background="{DynamicResource ApplicationBackgroundBrush}"
                            >
+            <ui:NavigationView.ContentOverlay>
+                <!-- 帧用于页面导航 -->
+                <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" />
+            </ui:NavigationView.ContentOverlay>
         </ui:NavigationView>
         
     </Grid>

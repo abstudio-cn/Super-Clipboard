@@ -1,0 +1,18 @@
+{
+  "languages": [
+    { "code": "zh", "name": "中文" },
+    { "code": "en", "name": "English" },
+    { "code": "ja", "name": "日本語" },
+    { "code": "ko", "name": "한국어" },
+    { "code": "fr", "name": "Français" },
+    { "code": "de", "name": "Deutsch" }
+  ],
+  "system_lang_map": {
+    "zh-CN": "zh", "zh-TW": "zh", "zh-HK": "zh", "zh-SG": "zh",
+    "zh-CHS": "zh", "zh-CHT": "zh",
+    "ja": "ja", "ja-JP": "ja",
+    "ko": "ko", "ko-KR": "ko",
+    "fr": "fr", "fr-FR": "fr", "fr-CA": "fr", "fr-BE": "fr", "fr-CH": "fr",
+    "de": "de", "de-DE": "de", "de-AT": "de", "de-CH": "de", "de-LI": "de", "de-LU": "de"
+  }
+}

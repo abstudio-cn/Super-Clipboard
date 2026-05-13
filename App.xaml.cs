@@ -2,7 +2,6 @@
 using System;
 using System.Configuration;
 using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -29,7 +28,26 @@ namespace superClipboard
         private string appName = "Super_Clipboard_权限申请";
         protected override void OnStartup(StartupEventArgs e)
         {
+            AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+            {
+                args.ExceptionObject?.ToString();
+            };
+            DispatcherUnhandledException += (s, args) =>
+            {
+                args.Handled = true;
+            };
+
             GlobalData.key_settings.Load();
+
+            // 初始化多语言服务
+            try
+            {
+                var loc = LocalizationService.Instance;
+                loc.Initialize(GlobalData.key_settings.Language);
+
+            }
+            catch (Exception) { }
+
             GlobalData.key_settings.ReflashTheme();
             // 检查是否需要管理员权限
             if (NeedAdminPrivileges(e.Args))
@@ -57,17 +75,15 @@ namespace superClipboard
             
             if (!createdNew)
             {
+                var loc = LocalizationService.Instance;
                 var messageBox = new Wpf.Ui.Controls.MessageBox
                 {
-                    Title = "提示",                  // 窗口标题（继承自 Window）
-                    Content = "您已经打开该应用程序，请在通知栏中寻找",        // 消息内容（可放置任何 UI 元素）
-
-                    // 主按钮（通常是确认/是）
+                    Title = loc["common.hint"],
+                    Content = loc["app.already_running"],
 
                     CloseButtonAppearance = ControlAppearance.Primary,
                     CloseButtonIcon = new SymbolIcon(SymbolRegular.Checkmark12),
-                    CloseButtonText = "确认",
-                    // 是否在标题栏显示标题
+                    CloseButtonText = loc["common.ok"],
                     ShowTitle = true
                 };
                 messageBox.ShowDialogAsync(showAsDialog: true);
@@ -85,14 +101,8 @@ namespace superClipboard
                 {
                     _notifyIcon.Icon = new Icon(stream);
                 }
-                else
-                {
-                    // 处理资源未找到的情况（例如使用默认图标或抛出异常）
-                    // 这里简单输出错误信息
-                    System.Diagnostics.Debug.WriteLine("无法找到嵌入资源");
-                    // 也可以使用备用图标
-                }
-                _notifyIcon.ToolTipText = "剪贴板应用";
+
+                _notifyIcon.ToolTipText = LocalizationService.Instance["tray.tooltip"];
 
                 // 设置双击行为
                 _notifyIcon.DoubleClickCommand = new RelayCommand(ShowMainWindow);
@@ -101,11 +111,11 @@ namespace superClipboard
                 var contextMenu = new ContextMenu();
 
                 // “打开”菜单项（功能与双击相同）
-                var openMenuItem = new Wpf.Ui.Controls.MenuItem { Header = "打开" };
+                var openMenuItem = new Wpf.Ui.Controls.MenuItem { Header = LocalizationService.Instance["tray.open"] };
                 openMenuItem.Click += (s, args) => ShowMainWindow();
 
                 // “退出”菜单项
-                var exitMenuItem = new Wpf.Ui.Controls.MenuItem { Header = "退出" };
+                var exitMenuItem = new Wpf.Ui.Controls.MenuItem { Header = LocalizationService.Instance["tray.exit"] };
                 exitMenuItem.Click += (s, args) =>
                 {
                     // 清理托盘图标资源（避免残留）

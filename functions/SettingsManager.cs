@@ -15,13 +15,17 @@ namespace superClipboard
 
         public Hotkey NormalPasteHotkey { get; set; }
         public Hotkey KeystrokesPasteHotkey { get; set; }
+        public Hotkey StopSimulationHotkey { get; set; }
+        public string BackgroundImagePath { get; set; } = string.Empty;
         public int _daynight {  get; set; } = 1;
+        public string Language { get; set; } = string.Empty;
 
         public SettingsManager()
         {
             // 设置默认值
             NormalPasteHotkey = new Hotkey(Key.V, ModifierKeys.Control);
             KeystrokesPasteHotkey = new Hotkey(Key.V, ModifierKeys.Control | ModifierKeys.Alt);
+            StopSimulationHotkey = new Hotkey(Key.Escape, ModifierKeys.None);
         }
 
         /// <summary>
@@ -44,8 +48,19 @@ namespace superClipboard
                 if (!string.IsNullOrEmpty(keystrokes))
                     KeystrokesPasteHotkey = ParseHotkey(keystrokes) ?? KeystrokesPasteHotkey;
 
+                // 读取停止模拟输入快捷键
+                string stopSim = key.GetValue("StopSimulation") as string;
+                if (!string.IsNullOrEmpty(stopSim))
+                    StopSimulationHotkey = ParseHotkey(stopSim) ?? StopSimulationHotkey;
+
                 if (Convert.ToInt32(key.GetValue("ThemeType")) is int intValue)
                     _daynight = intValue;
+
+                string bgPath = key.GetValue("BackgroundImage") as string;
+                if (!string.IsNullOrEmpty(bgPath))
+                    BackgroundImagePath = bgPath;
+
+                Language = key.GetValue("Language") as string ?? string.Empty;
             }
             catch { /* 忽略错误，使用默认值 */ }
         }
@@ -60,7 +75,10 @@ namespace superClipboard
                 var key = Registry.CurrentUser.CreateSubKey(RegistryKeyPath);
                 key.SetValue("NormalPaste", SerializeHotkey(NormalPasteHotkey));
                 key.SetValue("KeystrokesPaste", SerializeHotkey(KeystrokesPasteHotkey));
+                key.SetValue("StopSimulation", SerializeHotkey(StopSimulationHotkey));
+                key.SetValue("BackgroundImage", BackgroundImagePath ?? string.Empty);
                 key.SetValue("ThemeType", _daynight);
+                key.SetValue("Language", Language ?? string.Empty);
             }
             catch { /* 处理写入异常（可选） */ }
         }

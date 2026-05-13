@@ -25,6 +25,8 @@ namespace superClipboard
         public BitmapImage ImageContent { get; set; }
         public List<string> FilePaths { get; set; }
         public DateTime Timestamp { get; set; }
+        public string Id { get; set; }
+        public bool IsFavorite { get; set; }
     }
 
     public enum DataType

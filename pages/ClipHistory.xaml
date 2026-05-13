@@ -10,6 +10,8 @@
     <UserControl.Resources>
         <local:DataTypeToIconConverter x:Key="DataTypeToIconConverter"/>
         <local:ClipboardDataPreviewConverter x:Key="PreviewConverter"/>
+        <local:FileInfoConverter x:Key="FileInfoConverter"/>
+        <local:FavoriteIconConverter x:Key="FavoriteIconConverter"/>
     </UserControl.Resources>
 
     <Grid>
@@ -20,7 +22,7 @@
 
         <!-- 工具栏 -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
-            <Button Content="清空历史" Click="ClearHistory_Click" Margin="5"/>
+            <Button x:Name="BtnClearHistory" Click="ClearHistory_Click" Margin="5"/>
         </StackPanel>
 
         <!-- 历史列表 -->
@@ -35,23 +37,68 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <!-- 图标 -->
                             <TextBlock Grid.Column="0" Text="{Binding Type, Converter={StaticResource DataTypeToIconConverter}}" 
                                        FontFamily="Segoe UI Symbol" FontSize="20" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
-                            <!-- 时间 + 预览 -->
+                            <!-- 详细信息 -->
                             <StackPanel Grid.Column="1" Orientation="Vertical">
                                 <TextBlock Text="{Binding Timestamp, StringFormat='HH:mm:ss'}" Foreground="Gray" FontSize="10"/>
-                                <TextBlock Text="{Binding ., Converter={StaticResource PreviewConverter}}" 
-                                           TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis"/>
+                                <!-- 文本内容 -->
+                                <TextBlock x:Name="TextPreview" 
+                                           Text="{Binding TextContent}" 
+                                           TextWrapping="Wrap" 
+                                           MaxHeight="60" 
+                                           TextTrimming="CharacterEllipsis"
+                                           Visibility="Collapsed"/>
+                                <!-- 图片预览 -->
+                                <TextBlock x:Name="ImagePreviewText" 
+                                           Text="[图片]"
+                                           Foreground="DarkGray"
+                                           FontStyle="Italic"
+                                           Margin="0,2,0,0"
+                                           Visibility="Collapsed"/>
+                                <!-- 文件信息 -->
+                                <TextBlock x:Name="FilePreview" 
+                                           Text="{Binding ., Converter={StaticResource FileInfoConverter}}"
+                                           TextWrapping="Wrap"
+                                           MaxHeight="40"
+                                           TextTrimming="CharacterEllipsis"
+                                           Visibility="Collapsed"/>
                             </StackPanel>
 
                             <!-- 类型标识 -->
                             <TextBlock Grid.Column="2" Text="{Binding Type}" Foreground="Blue" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                            
+                            <!-- 收藏按钮 -->
+                            <Button Grid.Column="3" 
+                                    Content="{Binding IsFavorite, Converter={StaticResource FavoriteIconConverter}}"
+                                    FontSize="16"
+                                    Foreground="Gold"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="2"
+                                    Margin="5,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Cursor="Hand"
+                                    Tag="{Binding}"
+                                    Click="FavoriteButton_Click"/>
                         </Grid>
                     </Border>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Type}" Value="Text">
+                            <Setter TargetName="TextPreview" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="Image">
+                            <Setter TargetName="ImagePreviewText" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="Files">
+                            <Setter TargetName="FilePreview" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

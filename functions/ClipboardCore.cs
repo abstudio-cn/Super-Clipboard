@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Linq;
+using System.Security.Cryptography;
 
 
 
@@ -40,11 +41,14 @@ namespace superClipboard
         private bool _altPressed = false;
         private bool _shiftPressed = false;
         private bool _winPressed = false;
+        private CancellationTokenSource? _simulationCts;
+
+        /// <summary>
+        /// 获取当前剪贴板数据（供 UI 页面初始化时读取）
+        /// </summary>
+        public ClipboardData? CurrentData => _currentData;
 
 
-        private const uint KEYEVENTF_EXTENDEDKEY = 0x0001; // 键盘按下事件
-        private const uint KEYEVENTF_KEYUP = 0x0002; // 键盘释放事件
-        private const int VK_DELETE = 0x2E; // Delete键的虚拟键码
 
         public event Action<ClipboardData>? ClipboardChanged;
 
@@ -91,6 +95,24 @@ namespace superClipboard
             {
                 ProcessPaste(PasteMode.Keystrokes);
             }
+            // 检查是否匹配停止模拟输入快捷键
+            else if (_simulationCts != null &&
+                     currentModifiers == _settings.StopSimulationHotkey.Modifiers &&
+                     key == _settings.StopSimulationHotkey.Key)
+            {
+                StopSimulation();
+            }
+        }
+
+        /// <summary>
+        /// 停止当前正在进行的模拟输入
+        /// </summary>
+        private void StopSimulation()
+        {
+            Logger.Info("用户触发停止模拟输入");
+            _simulationCts?.Cancel();
+            _simulationCts?.Dispose();
+            _simulationCts = null;
         }
 
         private void OnKeyUp(Key key)
@@ -107,14 +129,22 @@ namespace superClipboard
 
         private void ProcessPaste(PasteMode mode)
         {
-            if (_currentData == null) return;
+            Logger.Info($"ProcessPaste 触发, mode={mode}, _currentData={(_currentData != null ? _currentData.Type.ToString() : "null")}");
+
+            if (_currentData == null)
+            {
+                Logger.Warn("ProcessPaste 中止: _currentData 为 null");
+                return;
+            }
 
             if (_currentData.Type == DataType.Text && mode == PasteMode.Keystrokes)
             {
+                Logger.Info($"进入模拟输入路径, 文本长度={_currentData.TextContent?.Length ?? 0}");
                 PasteAsKeystrokes(_currentData.TextContent);
             }
             else
             {
+                Logger.Info($"进入普通粘贴路径 (type={_currentData.Type}, mode={mode})");
                 // 普通模式或非文本内容，恢复原始剪贴板内容
                 RestoreClipboardContent();
             }
@@ -122,61 +152,44 @@ namespace superClipboard
 
         private void PasteAsKeystrokes(string text)
         {
+            // 取消之前可能正在进行的模拟
+            _simulationCts?.Cancel();
+            _simulationCts?.Dispose();
+
+            // 创建新的取消令牌
+            var cts = new CancellationTokenSource();
+            _simulationCts = cts;
+
             Task.Run(async () =>
             {
-                // 等待所有修饰键释放（避免干扰）
-                while (_ctrlPressed || _altPressed || _shiftPressed || _winPressed)
+                try
                 {
-                    await Task.Delay(50);
+                    // 等待所有修饰键释放（避免干扰）
+                    while (_ctrlPressed || _altPressed || _shiftPressed || _winPressed)
+                    {
+                        await Task.Delay(50);
+                    }
+
+                    // 可选延迟，确保目标窗口准备就绪
+                    await Task.Delay(500);
+
+                    // 使用 SendInput 模拟 Delete 键（清空可能预选的内容）
+                    NativeInputSimulator.KeyPress(0x2E, true); // VK_DELETE, extended key
+                    await Task.Delay(100);
+
+                    // 使用 SendInput 发送文本，传入取消令牌以支持中途停止
+                    await Task.Run(() => NativeInputSimulator.TypeText(text, 20, cts.Token));
                 }
-
-                // 可选延迟，确保目标窗口准备就绪
-                await Task.Delay(1000);
-
-                // 模拟按下 Delete 键（清空可能预选的内容）
-                KeyboardHookManager.keybd_event(VK_DELETE, 0x45, KEYEVENTF_EXTENDEDKEY, 0);
-                await Task.Delay(50);
-                KeyboardHookManager.keybd_event(VK_DELETE, 0x45, KEYEVENTF_KEYUP, 0);
-                await Task.Delay(100);
-                // 转义特殊字符并发送文本
-                string[] escapedText = EscapeSendKeysString(text);
-                for (long i = 0; i < escapedText.Length; i++)
+                finally
                 {
-                    SendKeys.SendWait(escapedText[i].ToString());
-                    Thread.Sleep(50);
+                    // 清理：仅当此 CTS 仍是当前活动的 CTS 时才清理
+                    if (_simulationCts == cts)
+                    {
+                        _simulationCts = null;
+                    }
+                    cts.Dispose();
                 }
             });
-        }
-
-        private static string[] EscapeSendKeysString(string text)
-        {
-            // SendKeys 特殊字符: + ^ % ~ ( ) [ ] { }
-            // 需要将每个特殊字符用花括号包围，例如 '(' 变为 "{(}"
-            var aa = new System.Text.StringBuilder();
-            foreach (char c in text)
-            {
-                switch (c)
-                {
-                    case '+':
-                    case '^':
-                    case '%':
-                    case '~':
-                    case '(':
-                    case ')':
-                    case '[':
-                    case ']':
-                    case '{':
-                    case '}':
-                        aa.Append('{').Append(c).Append('}');
-                        break;
-                    default:
-                        aa.Append(c);
-                        break;
-                }
-            }
-            string textWithEscapes = aa.ToString();
-            string[] split = SplitStringByLength(textWithEscapes, 100); // 100字符串切割以实现动态监控
-            return split;
         }
 
         public static string[] SplitStringByLength(string input, int chunkSize)
@@ -241,6 +254,7 @@ namespace superClipboard
                                 TextContent = currentText,
                                 Timestamp = DateTime.Now
                             };
+                            _currentData.Id = GenerateDataId(_currentData);
                             ClipboardChanged?.Invoke(_currentData);
                             continue; // 避免重复检查其他格式
                         }
@@ -259,6 +273,7 @@ namespace superClipboard
                                 ImageContent = ConvertToBitmapImage(image),
                                 Timestamp = DateTime.Now
                             };
+                            _currentData.Id = GenerateDataId(_currentData);
                             ClipboardChanged?.Invoke(_currentData);
                             continue;
                         }
@@ -280,6 +295,7 @@ namespace superClipboard
                             FilePaths = fileList,
                             Timestamp = DateTime.Now
                         };
+                        _currentData.Id = GenerateDataId(_currentData);
                         ClipboardChanged?.Invoke(_currentData);
                         continue;
                     }
@@ -289,7 +305,7 @@ namespace superClipboard
                 catch (Exception ex)
                 {
                     // 输出错误信息，便于调试（在 Output 窗口可见）
-                    Debug.WriteLine($"剪贴板监控异常: {ex.Message}");
+                    Logger.Error($"剪贴板监控异常: {ex.Message}");
                     // 如果发生严重错误，可以选择停止监控
                     // _isMonitoring = false;
                 }
@@ -347,6 +363,46 @@ namespace superClipboard
             enc.Frames.Add(BitmapFrame.Create(bitmapImage));
             enc.Save(outStream);
             return new System.Drawing.Bitmap(outStream);
+        }
+
+        private string GenerateDataId(ClipboardData data)
+        {
+            // 使用时间戳和内容哈希生成唯一ID
+            StringBuilder sb = new StringBuilder();
+            sb.Append(data.Timestamp.ToString("yyyyMMddHHmmssffff"));
+            
+            // 根据类型添加内容哈希
+            string contentHash = "";
+            switch (data.Type)
+            {
+                case DataType.Text:
+                    contentHash = ComputeHash(data.TextContent ?? "");
+                    break;
+                case DataType.Image:
+                    // 图片使用时间戳作为部分标识
+                    contentHash = ComputeHash(data.Timestamp.ToString("O"));
+                    break;
+                case DataType.Files:
+                    contentHash = ComputeHash(string.Join("|", data.FilePaths ?? new List<string>()));
+                    break;
+                default:
+                    contentHash = ComputeHash(data.Timestamp.ToString("O"));
+                    break;
+            }
+            
+            sb.Append("_");
+            sb.Append(contentHash.Substring(0, Math.Min(8, contentHash.Length)));
+            
+            return sb.ToString();
+        }
+        
+        private string ComputeHash(string input)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+                return Convert.ToBase64String(hashBytes).Replace("=", "").Replace("/", "_").Replace("+", "-");
+            }
         }
 
         public void StopMonitoring()

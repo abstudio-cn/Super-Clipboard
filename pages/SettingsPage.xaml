@@ -10,15 +10,23 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="44.78"/>
             <RowDefinition Height="Auto" MinHeight="44.78"/>
+            <RowDefinition Height="Auto" MinHeight="44.78"/>
+            <RowDefinition Height="Auto" MinHeight="44.78"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" MinHeight="44.78"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" MinHeight="44.78"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" MinHeight="44.78"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -28,27 +36,66 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <ui:TextBlock Grid.Row="0" FontTypography="Title" Text="按键设置" Margin="0,0,0,45" Grid.RowSpan="2"  />
+        <ui:TextBlock x:Name="SectionHotkey" Grid.Row="0" FontTypography="Title" Margin="0,0,0,45" Grid.RowSpan="2"  />
         <!-- 普通粘贴快捷键 -->
-        <ui:TextBlock Grid.Row="1" Grid.Column="0" Text="普通粘贴:" VerticalAlignment="Center" Height="22"/>
+        <ui:TextBlock x:Name="LblNormalPaste" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Height="22"/>
         <TextBox x:Name="txtNormalPaste" Grid.Row="1" Grid.Column="1" Margin="5,5,5,5" 
                  IsReadOnly="True" PreviewKeyDown="HotkeyTextBox_PreviewKeyDown" 
                  ToolTip="点击后按下组合键"/>
 
         <!-- 模拟按键粘贴快捷键 -->
-        <Label Grid.Row="2" Grid.Column="0" Content="模拟按键粘贴:" VerticalAlignment="Center"  Height="22"/>
+        <Label x:Name="LblKeystrokesPaste" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"  Height="22"/>
         <TextBox x:Name="txtKeystrokesPaste" Grid.Row="2" Grid.Column="1" Margin="5,5,5,5" 
                  IsReadOnly="True" PreviewKeyDown="HotkeyTextBox_PreviewKeyDown"
                  ToolTip="点击后按下组合键"/>
 
-        <Border Grid.Row="3" Grid.Column="1" BorderBrush="Gray" BorderThickness="0,1,0,0" Margin="0,30,0,20" />
-        <ui:TextBlock Grid.Row="4" FontTypography="Title" Text="主题设置" Margin="0,0,0,45" Grid.RowSpan="2"  />
-        <Label Grid.Row="5" Grid.Column="0" Content="当前主题" VerticalAlignment="Center"  Height="22"/>
-        <ui:ToggleSwitch x:Name="DNSwitch" Grid.Row="5" Grid.Column="1" OffContent="白日" OnContent="夜间" Checked="ThemeToggle_Checked" Unchecked="ThemeToggle_Unchecked"/>
+        <!-- 停止模拟输入快捷键 -->
+        <Label x:Name="LblStopSimulation" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"  Height="22"/>
+        <TextBox x:Name="txtStopSimulation" Grid.Row="3" Grid.Column="1" Margin="5,5,5,5" 
+                 IsReadOnly="True" PreviewKeyDown="HotkeyTextBox_PreviewKeyDown"
+                 ToolTip="点击后按下组合键（模拟输入过程中按下可中止）"/>
+
+        <Border Grid.Row="4" Grid.Column="1" BorderBrush="Gray" BorderThickness="0,1,0,0" Margin="0,30,0,20" />
+
+        <ui:TextBlock x:Name="SectionLanguage" Grid.Row="5" FontTypography="Title" Margin="0,0,0,45" Grid.RowSpan="2"  />
+        <Label x:Name="LblSelectLang" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"  Height="22"/>
+        <ComboBox x:Name="LanguageComboBox" Grid.Row="6" Grid.Column="1" Margin="5,5,5,5" 
+                  Width="200" HorizontalAlignment="Left"
+                  SelectionChanged="LanguageComboBox_SelectionChanged"/>
+
+        <Border Grid.Row="7" Grid.Column="1" BorderBrush="Gray" BorderThickness="0,1,0,0" Margin="0,30,0,20" />
+
+        <ui:TextBlock x:Name="SectionTheme" Grid.Row="8" FontTypography="Title" Margin="0,0,0,45" Grid.RowSpan="2"  />
+        <Label x:Name="LblCurrentTheme" Grid.Row="9" Grid.Column="0" VerticalAlignment="Center"  Height="22"/>
+        <ui:ToggleSwitch x:Name="DNSwitch" Grid.Row="9" Grid.Column="1" OffContent="Light" OnContent="Dark" Checked="ThemeToggle_Checked" Unchecked="ThemeToggle_Unchecked"/>
+
+        <Border Grid.Row="10" Grid.Column="1" BorderBrush="Gray" BorderThickness="0,1,0,0" Margin="0,30,0,20" />
+
+        <ui:TextBlock x:Name="SectionBackground" Grid.Row="11" FontTypography="Title" Margin="0,0,0,45" Grid.RowSpan="2"  />
+        <Label x:Name="LblBgImage" Grid.Row="12" Grid.Column="0" VerticalAlignment="Center"  Height="22"/>
+        <Grid Grid.Row="12" Grid.Column="1" Margin="5,5,5,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="txtBackgroundPath" Grid.Column="0" 
+                     IsReadOnly="True" VerticalAlignment="Center"
+                     ToolTip="当前背景图片路径"
+                     Text="未设置"/>
+            <ui:Button x:Name="btnBrowseBg" Grid.Column="1" 
+                       Width="60" Margin="5,0"
+                       Click="BtnBrowseBg_Click"/>
+            <ui:Button x:Name="btnClearBg" Grid.Column="2" 
+                       Width="60"
+                       Click="BtnClearBg_Click"/>
+        </Grid>
+
         <!-- 按钮区域 -->
-        <StackPanel Grid.Row="10" Orientation="Vertical"  HorizontalAlignment="Right" Margin="5" Grid.ColumnSpan="2">
-            <ui:Button x:Name="btnSave" Content="保存" Width="100" Margin="5" Click="BtnSave_Click"/>
+        <StackPanel Grid.Row="15" Orientation="Vertical" HorizontalAlignment="Right" Margin="5" Grid.ColumnSpan="2">
+            <ui:Button x:Name="btnSave" Width="100" Margin="5" Click="BtnSave_Click"/>
         </StackPanel>
 
     </Grid>
+    </ScrollViewer>
 </UserControl>

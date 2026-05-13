@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -34,9 +33,49 @@ namespace superClipboard
         public MainWindow()
         {
             InitializeComponent();
+            TitleBar.Title = LocalizationService.Instance["app.title"];
             InitializePages();
             GenerateMenuItems();
             SetIconFromEmbeddedResource();
+            ApplyBackground();
+        }
+
+        /// <summary>
+        /// 应用背景图片设置。夜间模式下亮度减半（叠加黑色半透明遮罩）。
+        /// </summary>
+        public void ApplyBackground()
+        {
+            var settings = GlobalData.key_settings;
+            string path = settings.BackgroundImagePath;
+            bool isNight = settings._daynight == 1;
+
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                BackgroundImage.Visibility = Visibility.Collapsed;
+                NightOverlay.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(path);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                BackgroundImage.Source = bitmap;
+                BackgroundImage.Visibility = Visibility.Visible;
+
+                // 夜间模式：叠加 50% 黑色遮罩降低亮度
+                NightOverlay.Visibility = isNight ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch (Exception)
+            {
+                BackgroundImage.Visibility = Visibility.Collapsed;
+                NightOverlay.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void SetIconFromEmbeddedResource()
@@ -56,13 +95,15 @@ namespace superClipboard
         }
         private void InitializePages()
         {
-            // 初始化页面集合
+            // 初始化页面集合（用类型名作 key，与语言无关）
             _pages = new Dictionary<string, UserControl>
             {
                 { "Home", new HomePage() },
-                { "Monitor", new ClipMonitor() },
-                { "History", new ClipHistory() },
-                { "Settings", new SettingsPage() }
+                { nameof(ClipMonitor), new ClipMonitor() },
+                { nameof(ClipHistory), new ClipHistory() },
+                { nameof(FileSendPage), new FileSendPage() },
+                { nameof(FileReceivePage), new FileReceivePage() },
+                { nameof(SettingsPage), new SettingsPage() }
             };
 
             // 初始化菜单项集合
@@ -75,19 +116,23 @@ namespace superClipboard
             MainNavigationView.MenuItems.Clear();
 
             // 创建菜单项
-            var testItem = CreateNavigationItem("监听面板", SymbolRegular.Desktop24, typeof(superClipboard.ClipMonitor));
-            var historyItem = CreateNavigationItem("历史记录", SymbolRegular.History24, typeof(superClipboard.ClipHistory));
-            var settingsItem = CreateNavigationItem("设置", SymbolRegular.Settings24, typeof(superClipboard.SettingsPage));
+            var loc = LocalizationService.Instance;
+            var testItem = CreateNavigationItem(loc["nav.monitor"], SymbolRegular.Desktop24, typeof(superClipboard.ClipMonitor));
+            var historyItem = CreateNavigationItem(loc["nav.history"], SymbolRegular.History24, typeof(superClipboard.ClipHistory));
+            var fileSendItem = CreateNavigationItem(loc["nav.file_send"], SymbolRegular.Send24, typeof(superClipboard.FileSendPage));
+            var fileReceiveItem = CreateNavigationItem(loc["nav.file_receive"], SymbolRegular.Archive24, typeof(superClipboard.FileReceivePage));
+            var settingsItem = CreateNavigationItem(loc["nav.settings"], SymbolRegular.Settings24, typeof(superClipboard.SettingsPage));
 
             // 添加到导航视图
             MainNavigationView.MenuItems.Add(testItem);
             MainNavigationView.MenuItems.Add(historyItem);
+            MainNavigationView.MenuItems.Add(fileSendItem);
+            MainNavigationView.MenuItems.Add(fileReceiveItem);
             MainNavigationView.MenuItems.Add(settingsItem);
 
-            // 存储菜单项引用以便后续操作
-            // 设置默认选中项
+            // 默认显示首页
             MainNavigationView.IsEnabled = true;
-            MainNavigationView.ContentOverlay = _pages["Home"];
+            MainFrame.Navigate(_pages["Home"]);
 
         }
 
@@ -95,10 +140,11 @@ namespace superClipboard
         {
             var item = new NavigationViewItem
             {
-                Name = content,
+                // Name 不能用空格，用类型名代替
+                Name = classtype.Name.Replace(" ", "_"),
                 Content = content,
                 Icon = new SymbolIcon { Symbol = icon },
-                TargetPageType = classtype
+                // 不设 TargetPageType，由 OnMenuItemClick 手动导航
             };
 
             // 为菜单项添加点击事件
@@ -109,15 +155,14 @@ namespace superClipboard
 
         private void OnMenuItemClick(object sender, RoutedEventArgs e)
         {
-            MainNavigationView.ContentOverlay = null;
             if (sender is NavigationViewItem item)
             {
-                string pageKey = item.Content.ToString();
+                string pageKey = item.Name;
 
-                if (_pages.ContainsKey(pageKey))
+                if (_pages.TryGetValue(pageKey, out var page))
                 {
-                    // 更新面包屑
-                    UpdateBreadcrumb(pageKey);
+                    MainFrame.Navigate(page);
+                    UpdateBreadcrumb(item.Content?.ToString() ?? pageKey);
                 }
             }
         }

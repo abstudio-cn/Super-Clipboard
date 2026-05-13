@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -10,66 +11,77 @@ namespace superClipboard
     public partial class ClipMonitor : UserControl
     {
         CancellationTokenSource cts = new CancellationTokenSource();
+        private readonly LocalizationService _loc;
 
         public ClipMonitor()
         {
             InitializeComponent();
+            _loc = LocalizationService.Instance;
+            ApplyLocalization();
             GlobalData._clipboardCore.ClipboardChanged += OnClipboardChanged;
+            Loaded += (s, e) =>
+            {
+                var data = GlobalData._clipboardCore.CurrentData;
+                if (data != null) UpdateUI(data);
+            };
+        }
+
+        private void ApplyLocalization()
+        {
+            LblShortcutHint.Text = _loc["monitor.shortcut_hint"];
+            LblShortcutNormal.Text = _loc["monitor.shortcut_normal"];
+            LblShortcutSimulate.Text = _loc["monitor.shortcut_simulate"];
+            LblCurrentClipboard.Text = _loc["monitor.current"];
+            NoContentText.Text = _loc["monitor.empty"];
         }
 
         private void OnClipboardChanged(ClipboardData data)
         {
             Dispatcher.BeginInvoke(() =>
             {
-                if (!cts.Token.IsCancellationRequested)
-                {
-                    UpdateUI(data); 
-                }
-                else
-                {
-                    return;
-                }
+                if (!cts.Token.IsCancellationRequested) UpdateUI(data);
             }, DispatcherPriority.Background);
         }
 
         private void UpdateUI(ClipboardData data)
         {
-            // 更新信息面板
-            DataTypeText.Text = $"数据类型：{data.Type}";
-            TimeText.Text = $"时间：{data.Timestamp:HH:mm:ss}";
+            DataTypeText.Text = string.Format(_loc["monitor.data_type"],
+                data.Type == DataType.Text ? _loc["monitor.type_text"] :
+                data.Type == DataType.Image ? _loc["monitor.type_image"] :
+                data.Type == DataType.Files ? _loc["monitor.type_files"] : data.Type.ToString());
+            TimeText.Text = string.Format(_loc["monitor.time"], data.Timestamp.ToString("HH:mm:ss"));
 
-            // 清空所有内容显示
             TextContentBox.Visibility = Visibility.Collapsed;
             ImageContentBox.Visibility = Visibility.Collapsed;
             FileListBox.Visibility = Visibility.Collapsed;
             NoContentText.Visibility = Visibility.Visible;
 
-            // 根据数据类型显示内容
             switch (data.Type)
             {
                 case DataType.Text:
-                    PreviewText.Text = $"预览：{data.TextContent.Substring(0, Math.Min(50, data.TextContent.Length))}...";
+                    PreviewText.Text = string.Format(_loc["monitor.preview"],
+                        data.TextContent.Substring(0, Math.Min(50, data.TextContent.Length)) + "...");
                     TextContentBox.Text = data.TextContent;
                     TextContentBox.Visibility = Visibility.Visible;
                     NoContentText.Visibility = Visibility.Collapsed;
                     break;
 
                 case DataType.Image:
-                    PreviewText.Text = "预览：[图片]";
+                    PreviewText.Text = _loc["monitor.preview_image"];
                     ImageContentBox.Source = data.ImageContent;
                     ImageContentBox.Visibility = Visibility.Visible;
                     NoContentText.Visibility = Visibility.Collapsed;
                     break;
 
                 case DataType.Files:
-                    PreviewText.Text = $"预览：{data.FilePaths.Count} 个文件";
+                    PreviewText.Text = string.Format(_loc["monitor.preview_files"], data.FilePaths.Count);
                     FileListBox.ItemsSource = data.FilePaths;
                     FileListBox.Visibility = Visibility.Visible;
                     NoContentText.Visibility = Visibility.Collapsed;
                     break;
 
                 default:
-                    PreviewText.Text = "预览：不支持的内容类型";
+                    PreviewText.Text = _loc["monitor.preview_unsupported"];
                     break;
             }
         }
@@ -79,6 +91,5 @@ namespace superClipboard
             GlobalData._clipboardCore.ClipboardChanged -= OnClipboardChanged;
             cts.Cancel();
         }
-
     }
 }

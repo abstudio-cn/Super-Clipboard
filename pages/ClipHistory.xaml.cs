@@ -9,10 +9,13 @@ namespace superClipboard
 {
     public partial class ClipHistory : UserControl
     {
+        private readonly LocalizationService _loc;
+
         public ClipHistory()
         {
             InitializeComponent();
-            // 绑定历史数据源
+            _loc = LocalizationService.Instance;
+            BtnClearHistory.Content = _loc["history.clear_all"];
             HistoryListBox.ItemsSource = GlobalData.HistoryManager.HistoryItems;
         }
 
@@ -20,13 +23,29 @@ namespace superClipboard
         {
             if (HistoryListBox.SelectedItem is ClipboardData selectedData)
             {
-                GlobalData.HistoryManager.SetClipboardFromHistory(selectedData);
+                // 打开预览窗口
+                var previewWindow = new PreviewWindow(selectedData);
+                previewWindow.Owner = Window.GetWindow(this);
+                previewWindow.ShowDialog();
             }
         }
 
         private void ClearHistory_Click(object sender, RoutedEventArgs e)
         {
             GlobalData.HistoryManager.HistoryItems.Clear();
+        }
+        
+        private void FavoriteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is ClipboardData data)
+            {
+                // 切换收藏状态
+                GlobalData.HistoryManager.ToggleFavorite(data);
+                
+                // 更新按钮文本（通过绑定会自动更新）
+                // 强制刷新UI
+                HistoryListBox.Items.Refresh();
+            }
         }
     }
 
@@ -70,6 +89,104 @@ namespace superClipboard
                 };
             }
             return "";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
+    // 文件信息转换器
+    public class FileInfoConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is ClipboardData data && data.Type == DataType.Files && data.FilePaths != null)
+            {
+                int fileCount = data.FilePaths.Count;
+                if (fileCount == 0)
+                    return "空文件列表";
+                
+                // 尝试获取第一个文件的信息
+                string firstFile = data.FilePaths[0];
+                string fileName = System.IO.Path.GetFileName(firstFile);
+                
+                if (fileCount == 1)
+                {
+                    // 单个文件，显示文件名和大小
+                    try
+                    {
+                        var fileInfo = new System.IO.FileInfo(firstFile);
+                        string size = FormatFileSize(fileInfo.Length);
+                        return $"{fileName} ({size})";
+                    }
+                    catch
+                    {
+                        return fileName;
+                    }
+                }
+                else
+                {
+                    // 多个文件
+                    return $"{fileCount} 个文件: {fileName} 等";
+                }
+            }
+            return string.Empty;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+
+        private string FormatFileSize(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+            int counter = 0;
+            decimal number = bytes;
+            
+            while (System.Math.Round(number / 1024) >= 1)
+            {
+                number /= 1024;
+                counter++;
+            }
+            
+            return $"{number:n2} {suffixes[counter]}";
+        }
+    }
+
+    // 图片缩略图转换器
+    public class ImageThumbnailConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is System.Windows.Media.Imaging.BitmapImage originalImage)
+            {
+                // 创建缩略图
+                var thumbnail = new System.Windows.Media.Imaging.BitmapImage();
+                thumbnail.BeginInit();
+                thumbnail.DecodePixelWidth = 60; // 缩略图宽度
+                thumbnail.DecodePixelHeight = 40; // 缩略图高度
+                thumbnail.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                thumbnail.UriSource = originalImage.UriSource;
+                thumbnail.EndInit();
+                thumbnail.Freeze();
+                return thumbnail;
+            }
+            return null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
+    // 收藏图标转换器
+    public class FavoriteIconConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool isFavorite)
+            {
+                return isFavorite ? "★" : "☆";
+            }
+            return "☆";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

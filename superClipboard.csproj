@@ -6,8 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+
     <ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
     <Authors>$(AssemblyName)</Authors>
+    <Copyright>abstudio</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +17,10 @@
     <EmbeddedResource Remove="typingTransfer\**" />
     <None Remove="typingTransfer\**" />
     <Page Remove="typingTransfer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="typingTransfer\typingTransfer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,17 +39,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Costura.Fody" Version="6.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
     <PackageReference Include="Hardcodet.Wpf.TaskbarNotification" Version="1.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.4" />
     <PackageReference Include="WPF-UI" Version="4.2.0" />
     <PackageReference Include="WPF-UI.Abstractions" Version="4.2.0" />
 	<PackageReference Include="WPF-UI.DependencyInjection" Version="4.2.0" />
-	 <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+	 <PackageReference Include="System.Drawing.Common" Version="10.0.4" />
+
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +59,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -64,5 +72,21 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="i18n\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>i18n\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+
 
 </Project>
