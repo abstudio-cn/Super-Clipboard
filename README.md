@@ -1,4 +1,4 @@
-# Super Clipboard 🐋
+# Super Clipboard
 
 > **基于 WPF / .NET 8 的智能剪贴板 —— 让打字成为过去式**
 
