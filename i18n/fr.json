@@ -7,6 +7,7 @@
   "nav.file_send": "Envoi fichier",
   "nav.file_receive": "Réception fichier",
   "nav.settings": "Paramètres",
+  "nav.help": "Aide",
 
   "settings.hotkey": "Raccourcis",
   "settings.normal_paste": "Coller normal:",
@@ -109,6 +110,11 @@
   "filereceive.no_data": "Aucune donnée",
   "filereceive.chunks_fmt": "Blocs: {0}/{1}",
   "filereceive.characters_fmt": "Caractères: {0}",
+  "filereceive.characters_progress_fmt": "Caractères: {0}/{1}",
+  "filereceive.eta_fmt_m": "Restant {0}m {1}s",
+  "filereceive.eta_fmt_h": "Restant {0}h {1}m {2}s",
+  "filereceive.eta_unknown": "Restant --",
+  "filereceive.eta_done": "Transfert terminé",
 
   "decode.title": "Plateforme cible",
   "decode.content": "Transfert terminé! Sélectionnez l'OS.",
@@ -143,5 +149,21 @@
   "tray.exit": "Quitter",
   "tray.tooltip": "Presse-papiers",
 
-  "app.already_running": "Déjà en cours d'exécution"
+  "app.already_running": "Déjà en cours d'exécution",
+
+  "help.title": "Fonctionnalités",
+  "help.monitor.title": "Surveillance",
+  "help.monitor.body": "Affiche le type et l'aperçu du contenu actuel du presse-papiers (texte / image / fichiers).\n\nRaccourcis :\n· Ctrl+V — Collage normal\n· Ctrl+Alt+V — Collage par saisie simulée (caractère par caractère)\n· Échap — Arrêter la saisie simulée en cours\n\nTous les raccourcis sont personnalisables dans les Paramètres.",
+  "help.history.title": "Historique du presse-papiers",
+  "help.history.body": "Enregistre automatiquement le contenu copié. Recherche, copie, favoris et suppression pris en charge.\nCliquez sur une entrée pour la copier ; les favoris sont épinglés en haut.",
+  "help.pastequeue.title": "Collage par touche numérique (file d'attente)",
+  "help.pastequeue.body": "Sur la page Historique, le bouton « Activer le collage en liste » parcourt trois modes : Désactivé → Séquentiel → Inversé.\n\nUne fois activé, chaque pression du raccourci de collage colle l'entrée suivante de la file.\n\nAprès avoir pressé le raccourci de collage, une touche numérique permet de sélectionner une entrée de la liste : les touches 1–9 choisissent les 1er–9e éléments de haut en bas, et 0 choisit le 10e. Si aucune touche n'est pressée pendant la fenêtre d'attente, le premier élément est collé par défaut. La fenêtre est réglable dans Paramètres → Délai d'attente (200–2000 ms).",
+  "help.excel.title": "Mode d'édition Excel",
+  "help.excel.body": "Activer/désactiver avec Ctrl+Alt+E.\n\nLorsqu'il est activé :\n· Les copies depuis Excel attendent 1 seconde pour capturer tout le contenu des cellules\n· Le texte (et non les images) reste en haut de la liste d'historique",
+  "help.filesend.title": "Envoyer un fichier",
+  "help.filesend.body": "Choisissez un fichier, définissez la taille des blocs et lancez — les données sont transmises bloc par bloc par saisie clavier simulée.\n\nEncodage :\n· Compressé : Deflate + Base93, plus compact (le destinataire doit utiliser ce logiciel)\n· Non compressé : Base64 standard\n\nUn compte à rebours de 10 secondes démarre après « Démarrer l'envoi ». Pause/reprise possible ; « Annuler » interrompt immédiatement.\n\nLe nom de fichier original est joint en fin de transfert et restauré automatiquement côté réception.\n\n« Envoyer (sans logiciel) » : transfert Base64 pur — le destinataire n'a besoin d'aucun logiciel ; enregistrez le texte et décodez-le avec la commande système générée.",
+  "help.filereceive.title": "Recevoir un fichier",
+  "help.filereceive.body": "Cliquez sur « Démarrer l'écoute » pour capturer automatiquement le flux de frappe entrant — aucun collage manuel requis.\n\nProgression en direct : compteur de blocs, compteur de caractères (reçus / total) et estimation du temps restant.\n\nLe mode de réception doit correspondre à l'émetteur : Base93 (compressé) / Base64 / texte brut.\n\nÀ la fin du transfert, le fichier est décodé automatiquement avec son nom d'origine restauré ; « Enregistrer le fichier » permet de le stocker où vous voulez.\n\nNe touchez pas au clavier pendant l'écoute pour éviter les caractères parasites.",
+  "help.settings.title": "Paramètres",
+  "help.settings.body": "· Raccourcis : collage normal, saisie simulée, arrêt de la simulation et mode Excel\n· Délai d'attente des touches numériques : fenêtre de sélection des entrées (200–2000 ms)\n· Langue : changer la langue de l'interface (redémarrage requis)\n· Thème : clair / sombre\n· Arrière-plan : image personnalisée (assombrie automatiquement en mode sombre)"
 }

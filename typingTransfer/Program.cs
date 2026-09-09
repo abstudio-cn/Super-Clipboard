@@ -49,8 +49,10 @@ namespace BinaryToTextEncoding
                 digits[i] = (int)(value % 93);
                 value /= 93;
             }
-            // digits 现在是低位在前，反转得到高位在前
-            Array.Reverse(digits);
+            // 【修复】原代码此处多了一次 Array.Reverse：循环从 i=4 递减填充，
+            // digits[0] 已是最高位（93^4），digits[4] 为最低位（93^0），
+            // 直接映射即得高位在前的字符序列（与 DecodeBlock 的 value = value*93 + digit 一致）。
+            // 多余的 Reverse 导致编码输出低位在前，解码端按高位在前解析，往返必损坏。
             char[] result = new char[5];
             for (int i = 0; i < 5; i++)
             {
@@ -89,8 +91,8 @@ namespace BinaryToTextEncoding
                 digits[i] = (int)(value % 93);
                 value /= 93;
             }
-            Array.Reverse(digits); // 高位在前
-
+            // 【修复】与 Encode4Bytes 相同：循环后 digits[0] 已为最高位，
+            // 原 Array.Reverse 导致低位在前输出，与解码端不一致，往返必损坏。
             char[] result = new char[5];
             for (int i = 0; i < m; i++)
             {

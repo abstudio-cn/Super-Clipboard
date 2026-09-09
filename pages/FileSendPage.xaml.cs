@@ -24,6 +24,21 @@ namespace superClipboard
         private int _totalChunks = 0;
         private int _sentChunks = 0;
         private long _totalCharacters = 0;
+
+        /// <summary>分割块提示符：传输头结束标记，同时作为各数据块之间的分隔符</summary>
+        private const string TransferMarker = "<!@@@@@@@!>";
+
+        /// <summary>传输头中"分割块总数"字段的固定宽度（不足前补0）</summary>
+        private const int HeaderChunkFieldLength = 20;
+
+        /// <summary>传输头中"字符总数"字段的固定宽度（不足前补0）</summary>
+        private const int HeaderCharFieldLength = 80;
+
+        /// <summary>
+        /// 文件名标识前缀：所有字符传输完成时在末尾附带 "<@@@filename@@@>文件名"，
+        /// 供接收端还原原文件名（文件名内容为 UTF-8 + Base64 编码，保证可经模拟键盘传输）。
+        /// </summary>
+        private const string FileNameTagPrefix = "<@@@filename@@@>";
         private DispatcherTimer? _progressTimer;
         private readonly KeyboardHookManager _keyboardHook;
         private readonly object _lockObject = new();
@@ -60,8 +75,8 @@ namespace superClipboard
 
         private void OnKeyDown(Key key)
         {
-            // 可以添加快捷键支持，例如ESC取消发送
-            if (key == Key.Escape && _isSending)
+            // ESC 取消发送（倒计时期间也可取消）
+            if (key == Key.Escape && _cancellationTokenSource != null)
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -119,10 +134,15 @@ namespace superClipboard
                 ShowNotification("文件发送", "10秒后开始传输文件...", System.Windows.Forms.ToolTipIcon.Info);
             }
 
+            // 提前创建取消源：倒计时期间点击取消即可中止
+            _isSending = true;
+            _cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _cancellationTokenSource.Token;
+
             // 等待10秒
             for (int i = 10; i > 0; i--)
             {
-                if (_cancellationTokenSource?.IsCancellationRequested == true)
+                if (cancellationToken.IsCancellationRequested)
                     return;
 
                 StatusText.Text = string.Format(_loc["filesend.status_preparing"], i);
@@ -148,7 +168,8 @@ namespace superClipboard
                 PauseButton.IsEnabled = true;
                 CancelButton.IsEnabled = true;
 
-                _cancellationTokenSource = new CancellationTokenSource();
+                // 复用点击处理时创建的取消源（倒计时期间即已生效）
+                _cancellationTokenSource ??= new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;
 
                 // 读取文件
@@ -190,6 +211,13 @@ namespace superClipboard
                 int chunkSize = int.TryParse(ChunkSizeNumberBox.Text, out int size) ? size : 1000;
                 _totalChunks = (int)Math.Ceiling((double)textToSend.Length / chunkSize);
 
+                // 构建传输头：[20位分割块总数][80位字符总数][分割块提示符]
+                string transferHeader = BuildTransferHeader(_totalChunks, _totalCharacters);
+
+                // 构建文件名标识：<@@@filename@@@> + 原文件名（UTF-8 + Base64 编码）
+                string fileNameTag = FileNameTagPrefix + Convert.ToBase64String(
+                    Encoding.UTF8.GetBytes(Path.GetFileName(_selectedFilePath ?? "file.bin")));
+
                 // 更新进度显示
                 Dispatcher.Invoke(() =>
                 {
@@ -212,8 +240,8 @@ namespace superClipboard
                 _progressTimer.Tick += ProgressTimer_Tick;
                 _progressTimer.Start();
 
-                // 发送数据
-                await SendTextByTyping(textToSend, chunkSize, cancellationToken);
+                // 发送传输头 + 数据块（每块后跟分割块提示符，末尾附带文件名标识）
+                await SendTextWithProtocol(transferHeader, fileNameTag, textToSend, chunkSize, cancellationToken);
 
                 if (!cancellationToken.IsCancellationRequested)
                 {
@@ -250,6 +278,68 @@ namespace superClipboard
             }
         }
 
+        /// <summary>
+        /// 构建传输头：前0-20位为分割块总数（不足20位前补0），
+        /// 20-100位为字符总数（不足80位前补0），末尾为分割块提示符 "<!@@@@@@@!>"。
+        /// </summary>
+        private static string BuildTransferHeader(int totalChunks, long totalCharacters)
+        {
+            return totalChunks.ToString().PadLeft(HeaderChunkFieldLength, '0') +
+                   totalCharacters.ToString().PadLeft(HeaderCharFieldLength, '0') +
+                   TransferMarker;
+        }
+
+        /// <summary>
+        /// 按新传输协议发送：先发送传输头，再按块发送数据，
+        /// 每个数据块之后发送一个分割块提示符作为块分隔标记；
+        /// 最后一个数据块之后、结束提示符之前附带文件名标识。
+        /// </summary>
+        private async Task SendTextWithProtocol(string header, string fileNameTag, string text, int chunkSize, CancellationToken cancellationToken)
+        {
+            // 先发送传输头（接收端识别提示符后会自动删除并转换为分割块计数）
+            await SendChunk(header, cancellationToken);
+
+            for (int i = 0; i < text.Length; i += chunkSize)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                // 等待暂停
+                while (_isPaused && !cancellationToken.IsCancellationRequested)
+                {
+                    await Task.Delay(100);
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                int length = Math.Min(chunkSize, text.Length - i);
+                string chunk = text.Substring(i, length);
+
+                // 发送当前数据块
+                await SendChunk(chunk, cancellationToken);
+
+                // 所有字符传输完成时，在末尾附带文件名标识 <@@@filename@@@>文件名
+                if (i + length >= text.Length)
+                    await SendChunk(fileNameTag, cancellationToken);
+
+                // 分割块提示符
+                await SendChunk(TransferMarker, cancellationToken);
+
+                lock (_lockObject)
+                {
+                    _sentChunks++;
+                }
+
+                // 更新进度
+                Dispatcher.Invoke(() =>
+                {
+                    SendProgressBar.Value = _sentChunks;
+                    ChunksText.Text = string.Format(_loc["filesend.chunks_fmt"], _sentChunks, _totalChunks);
+                });
+            }
+        }
+
         private async Task SendTextByTyping(string text, int chunkSize, CancellationToken cancellationToken)
         {
             for (int i = 0; i < text.Length; i += chunkSize)
@@ -270,7 +360,7 @@ namespace superClipboard
                 string chunk = text.Substring(i, length);
 
                 // 发送当前块
-                await SendChunk(chunk);
+                await SendChunk(chunk, cancellationToken);
 
                 lock (_lockObject)
                 {
@@ -286,31 +376,18 @@ namespace superClipboard
             }
         }
 
-        private async Task SendChunk(string chunk)
+        private async Task SendChunk(string chunk, CancellationToken cancellationToken)
         {
-            foreach (char c in chunk)
+            // 使用基于 Win32 SendInput 的底层输入模拟（NativeInputSimulator）。
+            //
+            // 【重要修复】原实现使用 SendKeys.SendWait，其中 '+','^','%','~','(',')','{','}'
+            // 是特殊控制字符：SendWait("+") 只会按一下 Shift 而不会输出 '+'，
+            // 导致 Base64 文本中的所有 '+' 静默丢失，解码后的文件损坏。
+            // NativeInputSimulator 通过 VkKeyScanEx 映射 + 修饰键组合，能正确输入全部字符。
+            await Task.Run(() =>
             {
-                // 模拟键盘输入
-                SendKey(c);
-                await Task.Delay(10); // 每个字符之间的小延迟，避免输入过快
-            }
-        }
-
-        private void SendKey(char character)
-        {
-            // 这里需要实现字符到虚拟键码的映射和发送
-            // 简化版本：使用SendKeys（需要添加System.Windows.Forms引用）
-            // 注意：SendKeys.Send在WPF中可能不是最佳选择，这里先使用简化实现
-            
-            // 对于简单的ASCII字符，我们可以尝试直接发送
-            // 实际项目中可能需要更复杂的键盘模拟
-            try
-            {
-                System.Windows.Forms.SendKeys.SendWait(character.ToString());
-            }
-            catch (Exception)
-            {
-            }
+                NativeInputSimulator.TypeText(chunk, 10, cancellationToken);
+            });
         }
 
         private void ProgressTimer_Tick(object sender, EventArgs e)
@@ -375,10 +452,15 @@ namespace superClipboard
             if (result != MessageBoxResult.Yes)
                 return;
 
+            // 提前创建取消源：倒计时期间点击取消即可中止
+            _isSending = true;
+            _cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _cancellationTokenSource.Token;
+
             // 10秒倒计时
             for (int i = 10; i > 0; i--)
             {
-                if (_cancellationTokenSource?.IsCancellationRequested == true)
+                if (cancellationToken.IsCancellationRequested)
                     return;
                 StatusText.Text = string.Format(_loc["filesend.status_preparing"], i);
                 await Task.Delay(1000);
@@ -410,7 +492,8 @@ namespace superClipboard
                     CompressCheckBox.IsChecked = false;
                 });
 
-                _cancellationTokenSource = new CancellationTokenSource();
+                // 复用点击处理时创建的取消源（倒计时期间即已生效）
+                _cancellationTokenSource ??= new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;
 
                 // 读取文件
@@ -593,15 +676,20 @@ namespace superClipboard
 
         private void CancelSend()
         {
-            if (_isSending && _cancellationTokenSource != null)
-            {
-                var result = MessageBox.Show("确定要取消发送吗？", "确认取消", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
-                {
-                    _cancellationTokenSource.Cancel();
-                    _progressTimer?.Stop();
-                }
-            }
+            if (_cancellationTokenSource == null)
+                return;
+
+            // 直接取消，无需确认；状态重置为就绪
+            _cancellationTokenSource.Cancel();
+            _progressTimer?.Stop();
+            _isSending = false;
+            _isPaused = false;
+            StatusText.Text = _loc["filesend.status_ready"];
+            StartSendButton.IsEnabled = true;
+            SendNoClientButton.IsEnabled = !string.IsNullOrEmpty(_selectedFilePath);
+            PauseButton.IsEnabled = false;
+            PauseButton.Content = "暂停";
+            CancelButton.IsEnabled = true;
         }
 
         private void ResetUI()

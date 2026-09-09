@@ -1,0 +1,5 @@
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\bin\Release\net8.0\publish\win-x86\typingTransfer.exe
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\bin\Release\net8.0\publish\win-x86\typingTransfer.dll
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\bin\Release\net8.0\publish\win-x86\typingTransfer.deps.json
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\bin\Release\net8.0\publish\win-x86\typingTransfer.runtimeconfig.json
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\bin\Release\net8.0\publish\win-x86\typingTransfer.pdb

@@ -17,6 +17,37 @@ namespace superClipboard
             _loc = LocalizationService.Instance;
             BtnClearHistory.Content = _loc["history.clear_all"];
             HistoryListBox.ItemsSource = GlobalData.HistoryManager.HistoryItems;
+
+            // 初始化粘贴队列模式按钮，并订阅模式改变事件
+            UpdatePasteQueueButton(GlobalData._clipboardCore.QueueMode);
+            GlobalData._clipboardCore.PasteQueueModeChanged += OnPasteQueueModeChanged;
+        }
+
+        /// <summary>
+        /// 粘贴队列模式改变时刷新按钮文本。
+        /// </summary>
+        private void OnPasteQueueModeChanged(PasteQueueMode mode)
+            => UpdatePasteQueueButton(mode);
+
+        /// <summary>
+        /// 按钮文本 = 当前模式：关闭 / 顺序粘贴 / 倒序粘贴。
+        /// </summary>
+        private void UpdatePasteQueueButton(PasteQueueMode mode)
+        {
+            BtnPasteQueueMode.Content = mode switch
+            {
+                PasteQueueMode.Sequential => _loc["history.paste_queue.sequential"],
+                PasteQueueMode.Reverse => _loc["history.paste_queue.reverse"],
+                _ => _loc["history.paste_queue.off"]
+            };
+        }
+
+        /// <summary>
+        /// 点击按钮循环切换：关闭 → 顺序粘贴 → 倒序粘贴 → 关闭。
+        /// </summary>
+        private void PasteQueueMode_Click(object sender, RoutedEventArgs e)
+        {
+            GlobalData._clipboardCore.CyclePasteQueueMode();
         }
 
         private void HistoryListBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

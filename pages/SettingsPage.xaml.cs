@@ -39,6 +39,18 @@ namespace superClipboard
             themedata = _settings._daynight;
             LoadSettings();
             _isInitializing = false;
+
+            // 订阅 Excel 编辑模式改变事件（快捷键切换时实时同步开关）
+            _settings.ExcelEditModeChanged += OnExcelEditModeChanged;
+        }
+
+        /// <summary>
+        /// Excel 编辑模式改变（含快捷键切换）时同步开关状态。
+        /// </summary>
+        private void OnExcelEditModeChanged(bool enabled)
+        {
+            if (ExcelModeSwitch.IsChecked != enabled)
+                ExcelModeSwitch.IsChecked = enabled;
         }
         private void LoadSettings()
         {
@@ -50,6 +62,16 @@ namespace superClipboard
             txtNormalPaste.ToolTip = _loc["settings.hotkey_tooltip"];
             txtKeystrokesPaste.ToolTip = _loc["settings.hotkey_tooltip"];
             txtStopSimulation.ToolTip = _loc["settings.hotkey_stop_tooltip"];
+
+            SectionClipboard.Text = _loc["settings.clipboard"];
+            LblExcelMode.Content = _loc["settings.excel_edit_mode"];
+            ExcelModeSwitch.OffContent = _loc["settings.excel_off"];
+            ExcelModeSwitch.OnContent = _loc["settings.excel_on"];
+            ExcelModeSwitch.ToolTip = _loc["settings.excel_tooltip"];
+            ExcelModeSwitch.IsChecked = _settings.ExcelEditMode;
+            LblExcelHotkey.Content = _loc["settings.excel_hotkey"];
+            txtExcelHotkey.Text = _settings.ExcelModeHotkey?.ToString() ?? _loc["settings.not_set"];
+            txtExcelHotkey.ToolTip = _loc["settings.hotkey_tooltip"];
 
             SectionLanguage.Text = _loc["settings.language"];
             LblSelectLang.Content = _loc["settings.select_language"];
@@ -68,6 +90,12 @@ namespace superClipboard
             txtNormalPaste.Text = _settings.NormalPasteHotkey?.ToString() ?? _loc["settings.not_set"];
             txtKeystrokesPaste.Text = _settings.KeystrokesPasteHotkey?.ToString() ?? _loc["settings.not_set"];
             txtStopSimulation.Text = _settings.StopSimulationHotkey?.ToString() ?? _loc["settings.not_set"];
+
+            LblHistoryPasteWait.Content = _loc["settings.history_paste_wait"];
+            HistoryPasteWaitSlider.ToolTip = _loc["settings.history_paste_wait_tooltip"];
+            TxtHistoryPasteWait.Text = $"{_settings.HistoryPasteWaitMs} ms";
+            HistoryPasteWaitSlider.Value = _settings.HistoryPasteWaitMs;
+
             if(_settings._daynight == 1) DNSwitch.IsChecked = true;
 
             // 加载背景图片路径
@@ -99,6 +127,21 @@ namespace superClipboard
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 历史指定粘贴等待时间滑杆变化（100-2000ms，200ms 步进，吸附取整）。
+        /// </summary>
+        private void HistoryPasteWait_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isInitializing) return;
+
+            // 吸附到 200 的整数倍刻度系列（200,400,...,2000），并钳位到 [200, 2000]
+            int ms = (int)Math.Round(e.NewValue / 200.0) * 200;
+            if (ms < 200) ms = 200;
+            if (ms > 2000) ms = 2000;
+            _settings.HistoryPasteWaitMs = ms;
+            TxtHistoryPasteWait.Text = $"{ms} ms";
         }
 
         private void HotkeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -184,6 +227,8 @@ namespace superClipboard
                 _settings.KeystrokesPasteHotkey = keystrokesHotkey;
             if (txtStopSimulation.Tag is Hotkey stopHotkey)
                 _settings.StopSimulationHotkey = stopHotkey;
+            if (txtExcelHotkey.Tag is Hotkey excelHotkey)
+                _settings.ExcelModeHotkey = excelHotkey;
 
             // 保存背景图片路径
             if (txtBackgroundPath.Text != _loc["settings.not_set"])
@@ -282,6 +327,19 @@ namespace superClipboard
         private void ThemeToggle_Unchecked(object sender, RoutedEventArgs e)
         {
             _settings._daynight = 0;
+        }
+
+        /// <summary>
+        /// 开启 Excel 编辑模式：复制 Excel 内容时等待 1 秒确保完整，文字保持在列表最前。
+        /// </summary>
+        private void ExcelMode_Checked(object sender, RoutedEventArgs e)
+        {
+            _settings.SetExcelEditMode(true);
+        }
+
+        private void ExcelMode_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _settings.SetExcelEditMode(false);
         }
     }
 }

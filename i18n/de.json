@@ -7,6 +7,7 @@
   "nav.file_send": "Datei senden",
   "nav.file_receive": "Datei empfangen",
   "nav.settings": "Einstellungen",
+  "nav.help": "Hilfe",
 
   "settings.hotkey": "Tastenkürzel",
   "settings.normal_paste": "Einfügen:",
@@ -109,6 +110,11 @@
   "filereceive.no_data": "Keine Daten",
   "filereceive.chunks_fmt": "Blöcke: {0}/{1}",
   "filereceive.characters_fmt": "Zeichen: {0}",
+  "filereceive.characters_progress_fmt": "Zeichen: {0}/{1}",
+  "filereceive.eta_fmt_m": "Verbleibend {0}m {1}s",
+  "filereceive.eta_fmt_h": "Verbleibend {0}h {1}m {2}s",
+  "filereceive.eta_unknown": "Verbleibend --",
+  "filereceive.eta_done": "Übertragung abgeschlossen",
 
   "decode.title": "Zielplattform",
   "decode.content": "Übertragung abgeschlossen! OS wählen.",
@@ -143,5 +149,21 @@
   "tray.exit": "Beenden",
   "tray.tooltip": "Zwischenablage",
 
-  "app.already_running": "Bereits gestartet"
+  "app.already_running": "Bereits gestartet",
+
+  "help.title": "Funktionen",
+  "help.monitor.title": "Überwachung",
+  "help.monitor.body": "Zeigt Typ und Vorschau des aktuellen Zwischenablage-Inhalts (Text / Bild / Dateien).\n\nTastenkombinationen:\n· Strg+V — Normales Einfügen\n· Strg+Alt+V — Simuliertes Tippen (Zeichen für Zeichen)\n· Esc — Laufende Simulation stoppen\n\nAlle Tastenkombinationen sind in den Einstellungen anpassbar.",
+  "help.history.title": "Zwischenablage-Verlauf",
+  "help.history.body": "Kopierte Inhalte werden automatisch gespeichert. Suchen, Kopieren, Favorisieren und Löschen werden unterstützt.\nKlicken Sie auf einen Eintrag, um ihn zu kopieren; Favoriten werden oben angezeigt.",
+  "help.pastequeue.title": "Einfügen per Zifferntaste (Warteschlange)",
+  "help.pastequeue.body": "Auf der Verlaufsseite schaltet die Schaltfläche „Listen-Einfügen aktivieren“ durch drei Modi: Aus → Sequenziell → Umgekehrt.\n\nBei aktiviertem Modus fügt jeder Druck der Einfüge-Tastenkombination den nächsten Verlaufseintrag ein.\n\nNach dem Drücken der Einfüge-Tastenkombination kann innerhalb des Zeitfensters eine Zifferntaste einen Eintrag aus der Liste wählen: Tasten 1–9 wählen von oben nach unten den 1.–9. Eintrag, 0 wählt den 10. Eintrag. Wird im Zeitfenster keine Zifferntaste gedrückt, wird standardmäßig der erste Eintrag eingefügt. Das Zeitfenster ist unter Einstellungen → Wartezeit einstellbar (200–2000 ms).",
+  "help.excel.title": "Excel-Bearbeitungsmodus",
+  "help.excel.body": "Ein/Aus mit Strg+Alt+E.\n\nAktiviert:\n· Excel-Kopien warten 1 Sekunde, damit alle Zellinhalte erfasst werden\n· Text (statt Bilder) bleibt oben in der Verlaufsliste",
+  "help.filesend.title": "Datei senden",
+  "help.filesend.body": "Datei wählen, Blockgröße festlegen und starten — die Daten werden blockweise per simulierter Tastatureingabe übertragen.\n\nKodierung:\n· Komprimiert: Deflate + Base93, kleineres Volumen (Empfänger benötigt diese Software)\n· Unkomprimiert: Standard-Base64\n\nNach „Senden starten“ läuft ein 10-Sekunden-Countdown. Während des Sendens kann pausiert/fortgesetzt werden; „Abbrechen“ bricht sofort ab.\n\nDer Original-Dateiname wird am Ende mitübertragen und beim Empfänger automatisch wiederhergestellt.\n\n„Senden (ohne Client)“: reine Base64-Übertragung — der Empfänger braucht keine Software; Text speichern und mit dem generierten Systembefehl dekodieren.",
+  "help.filereceive.title": "Datei empfangen",
+  "help.filereceive.body": "Mit „Überwachung starten“ wird der eingehende Tastaturdatenstrom automatisch erfasst — kein manuelles Einfügen nötig.\n\nLive-Fortschritt: Blockzähler, Zeichenzähler (empfangen / gesamt) und Restzeit-Schätzung.\n\nDer Empfangsmodus muss zum Sender passen: Base93 (komprimiert) / Base64 / Rohtext.\n\nNach Abschluss wird die Datei automatisch dekodiert und der Originaldateiname wiederhergestellt; „Datei speichern“ speichert sie an beliebiger Stelle.\n\nWährend der Überwachung die Tastatur nicht berühren, um Störzeichen zu vermeiden.",
+  "help.settings.title": "Einstellungen",
+  "help.settings.body": "· Tastenkombinationen: Einfügen, simuliertes Tippen, Simulation stoppen und Excel-Modus anpassen\n· Wartezeit für Zifferntasten: Auswahlfenster für Verlaufseinträge (200–2000 ms)\n· Sprache: Oberflächensprache wechseln (Neustart erforderlich)\n· Design: hell / dunkel\n· Hintergrund: eigenes Hintergrundbild (im Dunkelmodus automatisch abgedunkelt)"
 }

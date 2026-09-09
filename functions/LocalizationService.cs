@@ -28,6 +28,7 @@ namespace superClipboard
         private static readonly Dictionary<string, string> _fallbackEn = new()
         {
             ["app.title"] = "Super Clipboard",
+            ["app.title_queue"] = "{0} ({1} Mode)",
             ["home.welcome"] = "Welcome to Super Clipboard",
             ["nav.monitor"] = "Monitor",
             ["nav.history"] = "History",
@@ -51,7 +52,15 @@ namespace superClipboard
             ["settings.restart_theme"] = "Theme change requires restart.\nRestart now?",
             ["settings.restart_language"] = "Language change requires restart.\nRestart now?",
             ["settings.not_set"] = "Not set",
+            ["settings.clipboard"] = "Clipboard Settings",
+            ["settings.excel_edit_mode"] = "Enable Excel Edit Mode",
+            ["settings.excel_hotkey"] = "Toggle Hotkey:",
+            ["settings.excel_on"] = "On",
+            ["settings.excel_off"] = "Off",
+            ["settings.excel_tooltip"] = "Wait 1s for Excel copies so all content is captured, and keep text (not image) at the top of the list",
             ["settings.hotkey"] = "Hotkey Settings",
+            ["settings.history_paste_wait"] = "History Paste Wait Time:",
+            ["settings.history_paste_wait_tooltip"] = "Wait window for selecting a history entry with number keys (200-2000 ms, 200 ms step)",
             ["settings.language"] = "Language Settings",
             ["settings.theme"] = "Theme Settings",
             ["settings.background"] = "Background Settings",
@@ -74,6 +83,9 @@ namespace superClipboard
             ["filereceive.title"] = "File Receive",
             ["filereceive.start_listening"] = "Start Listening",
             ["history.clear_all"] = "Clear History",
+            ["history.paste_queue.sequential"] = "Sequential Paste",
+            ["history.paste_queue.reverse"] = "Reverse Paste",
+            ["history.paste_queue.off"] = "Enable List Paste",
         };
 
         private readonly Dictionary<string, Dictionary<string, string>> _translations = new();

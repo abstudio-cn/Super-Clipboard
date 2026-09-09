@@ -1,12 +1,14 @@
 {
   "home.welcome": "Welcome to Super Clipboard",
   "app.title": "Super Clipboard",
+  "app.title_queue": "{0} ({1} Mode)",
 
   "nav.monitor": "Monitor",
   "nav.history": "History",
   "nav.file_send": "File Send",
   "nav.file_receive": "File Receive",
   "nav.settings": "Settings",
+  "nav.help": "Help",
 
   "settings.hotkey": "Hotkey Settings",
   "settings.normal_paste": "Normal Paste:",
@@ -14,6 +16,8 @@
   "settings.stop_simulation": "Stop Simulation:",
   "settings.hotkey_tooltip": "Click and press key combination",
   "settings.hotkey_stop_tooltip": "Press during simulation to stop",
+  "settings.history_paste_wait": "History Paste Wait Time:",
+  "settings.history_paste_wait_tooltip": "Wait window for selecting a history entry with number keys (200-2000 ms, 200 ms step)",
 
   "settings.language": "Language Settings",
   "settings.select_language": "Interface Language:",
@@ -29,6 +33,13 @@
   "settings.clear": "Clear",
   "settings.save": "Save",
   "settings.not_set": "Not set",
+
+  "settings.clipboard": "Clipboard Settings",
+  "settings.excel_edit_mode": "Enable Excel Edit Mode",
+  "settings.excel_hotkey": "Toggle Hotkey:",
+  "settings.excel_on": "On",
+  "settings.excel_off": "Off",
+  "settings.excel_tooltip": "Wait 1s for Excel copies so all content is captured, and keep text (not image) at the top of the list",
 
   "settings.restart_required": "Restart Required",
   "settings.restart_theme": "Theme change requires restart.\nRestart now?",
@@ -57,6 +68,9 @@
   "history.search": "Search history...",
   "history.empty": "No clipboard history",
   "history.clear_all": "Clear History",
+  "history.paste_queue.sequential": "Sequential Paste",
+  "history.paste_queue.reverse": "Reverse Paste",
+  "history.paste_queue.off": "Enable List Paste",
 
   "filesend.title": "File Send",
   "filesend.select_file_prompt": "Select file to send:",
@@ -110,6 +124,11 @@
   "filereceive.no_data": "No data received",
   "filereceive.chunks_fmt": "Chunks: {0}/{1}",
   "filereceive.characters_fmt": "Characters: {0}",
+  "filereceive.characters_progress_fmt": "Characters: {0}/{1}",
+  "filereceive.eta_fmt_m": "Remaining {0}m {1}s",
+  "filereceive.eta_fmt_h": "Remaining {0}h {1}m {2}s",
+  "filereceive.eta_unknown": "Remaining --",
+  "filereceive.eta_done": "Transfer complete",
 
   "decode.title": "Receiver Platform",
   "decode.content": "Transfer complete! Select the receiver OS.\nThe decode command will be copied to clipboard.",
@@ -144,5 +163,21 @@
   "tray.exit": "Exit",
   "tray.tooltip": "Clipboard Manager",
 
-  "app.already_running": "Application is already running.\nPlease check the system tray."
+  "app.already_running": "Application is already running.\nPlease check the system tray.",
+
+  "help.title": "Features",
+  "help.monitor.title": "Clipboard Monitor",
+  "help.monitor.body": "Shows the type and preview of the current clipboard content (text / image / files).\n\nHotkeys:\n· Ctrl+V — Normal paste\n· Ctrl+Alt+V — Simulated typing paste (types character by character)\n· Esc — Stop the ongoing simulated typing\n\nAll hotkeys can be customized in Settings.",
+  "help.history.title": "Clipboard History",
+  "help.history.body": "Automatically records copied content. Supports search, copy, favorite and delete.\nClick an entry to copy it; favorited entries are pinned to the top.",
+  "help.pastequeue.title": "Number-Key Paste (Paste Queue)",
+  "help.pastequeue.body": "On the History page, the \"Enable List Paste\" button cycles through three modes: Off → Sequential → Reverse.\n\nWhen enabled, each press of the paste hotkey pastes the next history entry in queue order.\n\nAfter pressing the paste hotkey, press a number key within the wait window to select an entry from the list: keys 1–9 select the 1st–9th items from top to bottom, and 0 selects the 10th item. If no number key is pressed during the wait window, the first item is pasted by default. The wait window can be adjusted in Settings → Paste number-key wait time (200–2000 ms).",
+  "help.excel.title": "Excel Edit Mode",
+  "help.excel.body": "Toggle with Ctrl+Alt+E.\n\nWhen enabled:\n· Copies from Excel wait 1 second to ensure all cell content is captured\n· Text (not images) stays at the top of the history list, making table data easier to work with",
+  "help.filesend.title": "File Send",
+  "help.filesend.body": "Pick any file, set the chunk size and start sending — the data is transferred chunk by chunk through simulated keyboard input.\n\nEncoding:\n· Compressed: Deflate + Base93, smaller size (the receiver needs this software)\n· Uncompressed: standard Base64\n\nA 10-second countdown starts after clicking \"Start Send\". You can pause/resume while sending; \"Cancel\" aborts immediately.\n\nThe original file name is attached at the end of the transfer and restored automatically on the receiver.\n\n\"Send (No Client)\": pure Base64 transfer — the receiver does not need this software. Save the received text and decode it with the generated system command.",
+  "help.filereceive.title": "File Receive",
+  "help.filereceive.body": "Click \"Start Listening\" to automatically capture the incoming keystroke data stream — no manual pasting needed.\n\nLive progress: chunk counter, character counter (received / total) and remaining-time estimate.\n\nThe receive mode must match the sender: Base93 (compressed) / Base64 / raw text.\n\nWhen the transfer completes, the file is decoded automatically with its original file name restored; use \"Save File As...\" to store it anywhere.\n\nDo not touch the keyboard while listening, to avoid mixing in stray characters.",
+  "help.settings.title": "Settings",
+  "help.settings.body": "· Hotkeys: customize normal paste, simulated typing paste, stop simulation and Excel mode toggle\n· Paste number-key wait time: response window for selecting history entries with number keys (200–2000 ms)\n· Language: switch the UI language (restart required)\n· Theme: light / dark\n· Background: custom background image (auto-dimmed in dark mode)"
 }

@@ -38,6 +38,30 @@ namespace superClipboard
             GenerateMenuItems();
             SetIconFromEmbeddedResource();
             ApplyBackground();
+
+            // 订阅粘贴队列模式改变事件，更新标题栏提示
+            GlobalData._clipboardCore.PasteQueueModeChanged += OnPasteQueueModeChanged;
+        }
+
+        /// <summary>
+        /// 粘贴队列模式改变时更新标题栏：
+        /// 关闭 → “超级剪贴板”；开启 → “超级剪贴板（顺序粘贴模式/倒序粘贴模式）”。
+        /// </summary>
+        private void OnPasteQueueModeChanged(PasteQueueMode mode)
+        {
+            var loc = LocalizationService.Instance;
+
+            if (mode == PasteQueueMode.Off)
+            {
+                TitleBar.Title = loc["app.title"];
+                return;
+            }
+
+            string modeText = mode == PasteQueueMode.Sequential
+                ? loc["history.paste_queue.sequential"]
+                : loc["history.paste_queue.reverse"];
+
+            TitleBar.Title = loc.Get("app.title_queue", loc["app.title"], modeText);
         }
 
         /// <summary>
@@ -103,7 +127,8 @@ namespace superClipboard
                 { nameof(ClipHistory), new ClipHistory() },
                 { nameof(FileSendPage), new FileSendPage() },
                 { nameof(FileReceivePage), new FileReceivePage() },
-                { nameof(SettingsPage), new SettingsPage() }
+                { nameof(SettingsPage), new SettingsPage() },
+                { nameof(HelpPage), new HelpPage() }
             };
 
             // 初始化菜单项集合
@@ -122,6 +147,7 @@ namespace superClipboard
             var fileSendItem = CreateNavigationItem(loc["nav.file_send"], SymbolRegular.Send24, typeof(superClipboard.FileSendPage));
             var fileReceiveItem = CreateNavigationItem(loc["nav.file_receive"], SymbolRegular.Archive24, typeof(superClipboard.FileReceivePage));
             var settingsItem = CreateNavigationItem(loc["nav.settings"], SymbolRegular.Settings24, typeof(superClipboard.SettingsPage));
+            var helpItem = CreateNavigationItem(loc["nav.help"], SymbolRegular.QuestionCircle24, typeof(superClipboard.HelpPage));
 
             // 添加到导航视图
             MainNavigationView.MenuItems.Add(testItem);
@@ -129,6 +155,7 @@ namespace superClipboard
             MainNavigationView.MenuItems.Add(fileSendItem);
             MainNavigationView.MenuItems.Add(fileReceiveItem);
             MainNavigationView.MenuItems.Add(settingsItem);
+            MainNavigationView.MenuItems.Add(helpItem);
 
             // 默认显示首页
             MainNavigationView.IsEnabled = true;

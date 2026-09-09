@@ -1,0 +1,11 @@
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\bin\Release\net8.0\win-x86\typingTransfer.deps.json
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\bin\Release\net8.0\win-x86\typingTransfer.dll
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\bin\Release\net8.0\win-x86\typingTransfer.pdb
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\obj\Release\net8.0\win-x86\typingTransfer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\obj\Release\net8.0\win-x86\typingTransfer.AssemblyInfoInputs.cache
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\obj\Release\net8.0\win-x86\typingTransfer.AssemblyInfo.cs
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\obj\Release\net8.0\win-x86\typingTransfer.csproj.CoreCompileInputs.cache
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\obj\Release\net8.0\win-x86\typingTransfer.dll
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\obj\Release\net8.0\win-x86\refint\typingTransfer.dll
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\obj\Release\net8.0\win-x86\typingTransfer.pdb
+C:\Users\abstudio\Documents\SuperClipboard\typingTransfer\obj\Release\net8.0\win-x86\ref\typingTransfer.dll

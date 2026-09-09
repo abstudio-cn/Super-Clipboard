@@ -1,12 +1,14 @@
 {
   "home.welcome": "欢迎使用超级剪贴板应用",
   "app.title": "超级剪贴板",
+  "app.title_queue": "{0}（{1}模式）",
 
   "nav.monitor": "监听面板",
   "nav.history": "历史记录",
   "nav.file_send": "文件发送",
   "nav.file_receive": "文件接收",
   "nav.settings": "设置",
+  "nav.help": "说明",
 
   "settings.hotkey": "按键设置",
   "settings.normal_paste": "普通粘贴:",
@@ -14,6 +16,8 @@
   "settings.stop_simulation": "停止模拟输入:",
   "settings.hotkey_tooltip": "点击后按下组合键",
   "settings.hotkey_stop_tooltip": "模拟输入过程中按下可中止",
+  "settings.history_paste_wait": "粘贴数字键等待时间:",
+  "settings.history_paste_wait_tooltip": "按下粘贴热键后，数字键选择历史条目的等待窗口（200-2000毫秒，200毫秒步进）",
 
   "settings.language": "语言设置",
   "settings.select_language": "界面语言:",
@@ -29,6 +33,13 @@
   "settings.clear": "清除",
   "settings.save": "保存",
   "settings.not_set": "未设置",
+
+  "settings.clipboard": "剪贴板设置",
+  "settings.excel_edit_mode": "开启excel编辑模式",
+  "settings.excel_hotkey": "开关快捷键:",
+  "settings.excel_on": "开启",
+  "settings.excel_off": "关闭",
+  "settings.excel_tooltip": "复制Excel内容时等待1秒确保内容完整，并让文字（而非图片）保持在列表最前",
 
   "settings.restart_required": "需要重启",
   "settings.restart_theme": "修改主题需要重启\n是否立即重新启动？",
@@ -57,6 +68,9 @@
   "history.search": "搜索历史记录...",
   "history.empty": "暂无剪贴板历史",
   "history.clear_all": "清空历史",
+  "history.paste_queue.sequential": "顺序粘贴",
+  "history.paste_queue.reverse": "倒序粘贴",
+  "history.paste_queue.off": "开启列表粘贴",
 
   "filesend.title": "文件发送",
   "filesend.select_file_prompt": "选择要发送的文件：",
@@ -110,6 +124,11 @@
   "filereceive.no_data": "没有接收到数据",
   "filereceive.chunks_fmt": "接收块：{0}/{1}",
   "filereceive.characters_fmt": "字符数：{0}",
+  "filereceive.characters_progress_fmt": "字符数：{0}/{1}",
+  "filereceive.eta_fmt_m": "剩余 {0}分{1}秒",
+  "filereceive.eta_fmt_h": "剩余 {0}小时{1}分{2}秒",
+  "filereceive.eta_unknown": "剩余 --",
+  "filereceive.eta_done": "传输完成",
 
   "decode.title": "接收方平台选择",
   "decode.content": "传输完成！请选择接收方操作系统，\n系统将生成对应的解码命令并复制到剪贴板。",
@@ -144,5 +163,21 @@
   "tray.exit": "退出",
   "tray.tooltip": "剪贴板管理器",
 
-  "app.already_running": "您已经打开该应用程序，请在通知栏中寻找"
+  "app.already_running": "您已经打开该应用程序，请在通知栏中寻找",
+
+  "help.title": "功能说明",
+  "help.monitor.title": "监听面板",
+  "help.monitor.body": "实时显示当前剪贴板内容的类型与预览（文字/图片/文件）。\n\n快捷键：\n· Ctrl+V — 普通粘贴\n· Ctrl+Alt+V — 模拟按键粘贴（逐字符模拟键盘输入）\n· Esc — 停止正在进行的模拟输入\n\n所有快捷键均可在「设置」中自定义。",
+  "help.history.title": "剪贴板历史",
+  "help.history.body": "自动记录复制过的内容，支持搜索、复制、收藏与删除。\n点击条目即可复制到剪贴板，收藏的条目置顶显示。",
+  "help.pastequeue.title": "粘贴数字键功能",
+  "help.pastequeue.body": "在历史记录页点击「开启列表粘贴」可循环切换三种模式：关闭 → 顺序粘贴 → 倒序粘贴。\n\n开启后，每按一次粘贴热键，就按队列顺序粘贴下一条历史内容。\n\n按下粘贴热键后，可在等待窗口内按数字键选择列表中的历史条目：数字键 1~9 对应从上到下第 1~9 条，0 代表第 10 条；等待窗口内未按数字键则默认粘贴第一条。等待窗口时长可在「设置 → 粘贴数字键等待时间」中调整（200~2000 毫秒）。",
+  "help.excel.title": "Excel 编辑模式",
+  "help.excel.body": "快捷键 Ctrl+Alt+E 开/关。\n\n开启后：\n· 复制 Excel 内容时等待 1 秒，确保单元格内容全部被捕获\n· 让文字（而非图片）保持在历史列表最前，方便处理表格数据",
+  "help.filesend.title": "文件发送",
+  "help.filesend.body": "选择任意文件并设置分块大小后开始发送，数据以模拟键盘输入的方式逐块传输。\n\n编码方式：\n· 压缩传输：Deflate + Base93 编码，体积更小（接收方需使用本软件）\n· 不压缩：标准 Base64 编码\n\n点击「开始发送」后有 10 秒倒计时准备；发送中可暂停/继续，点「取消」立即中止。\n\n传输末尾自动附带原文件名，接收端保存时自动还原文件名。\n\n「发送（无软件本体）」：纯 Base64 传输，接收方无需安装本软件，按提示保存文本后用系统命令解码即可。",
+  "help.filereceive.title": "文件接收",
+  "help.filereceive.body": "点击「开始监听」后自动捕获键盘输入的数据流，无需手动粘贴。\n\n实时显示接收进度：分割块计数、字符数（已接收/总数）、剩余时间估算。\n\n接收模式需与发送端匹配：Base93（压缩传输）/ Base64 / 原始文本。\n\n传输完成后自动解码并还原原文件名，可「保存文件」另存到任意位置。\n\n监听期间请勿操作键盘，避免混入干扰字符。",
+  "help.settings.title": "设置",
+  "help.settings.body": "· 按键设置：自定义普通粘贴、模拟按键粘贴、停止模拟输入、Excel 编辑模式开关的快捷键\n· 粘贴数字键等待时间：数字键选择历史条目的响应窗口（200~2000 毫秒）\n· 语言设置：切换界面语言（需重启生效）\n· 主题设置：白日 / 夜间\n· 背景设置：自定义背景图片（夜间模式自动降低亮度）"
 }

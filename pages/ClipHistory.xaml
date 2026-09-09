@@ -22,6 +22,7 @@
 
         <!-- 工具栏 -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
+            <Button x:Name="BtnPasteQueueMode" Click="PasteQueueMode_Click" Margin="5" ToolTip="循环切换：开启列表粘贴 → 顺序粘贴 → 倒序粘贴"/>
             <Button x:Name="BtnClearHistory" Click="ClearHistory_Click" Margin="5"/>
         </StackPanel>
 

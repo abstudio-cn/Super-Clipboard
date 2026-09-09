@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "/qqqG2HxKFs=",
+  "success": true,
+  "projectFilePath": "R:\\SuperClipboard\\typingTransfer\\typingTransfer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\abstudio\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.31\\microsoft.net.illink.tasks.8.0.31.nupkg.sha512",
+    "C:\\Users\\abstudio\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.31\\microsoft.netcore.app.runtime.win-x64.8.0.31.nupkg.sha512",
+    "C:\\Users\\abstudio\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.31\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.31.nupkg.sha512",
+    "C:\\Users\\abstudio\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.31\\microsoft.aspnetcore.app.runtime.win-x64.8.0.31.nupkg.sha512"
+  ],
+  "logs": []
+}
